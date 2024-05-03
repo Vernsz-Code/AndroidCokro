@@ -1,3 +1,5 @@
+import 'package:androidchokro/produkKeluarPage.dart';
+import 'package:androidchokro/loginPage.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,7 +11,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MainPage(),
+      home: produkKeluarPage(),
     );
   }
 }
@@ -22,7 +24,9 @@ class MainPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.blue,
       ),
-      drawer: Drawer(),
+      drawer: const Drawer(
+        child: Text("Andra "),
+      ),
       body: Center(
         child: Container(
           padding: EdgeInsets.only(top: 20, left: 10, right: 10),
@@ -30,13 +34,13 @@ class MainPage extends StatelessWidget {
           width: 600,
           decoration: BoxDecoration(
             color: Color.fromARGB(255, 60, 205, 65),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(0),
           ),
           child: Column(
             children: [
               Row(
                 children: [
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       "CokroApp",
                       style: TextStyle(
@@ -53,18 +57,48 @@ class MainPage extends StatelessWidget {
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
-                              title: Text("Judul Dialog"),
-                              content: Text("Ini adalah konten dari dialog."),
+                              title: Text("Ini notif"),
+                              content:
+                                  Text("Apakah Anda ingin pindah halaman?"),
                               actions: [
                                 TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
+                                    Navigator.push(
+                                      context,
+                                      PageRouteBuilder(
+                                        pageBuilder: (context, animation,
+                                            secondaryAnimation) {
+                                          return loginPage();
+                                        },
+                                        transitionsBuilder: (context, animation,
+                                            secondaryAnimation, child) {
+                                          var begin = Offset(1.0, 0.0);
+                                          var end = Offset.zero;
+                                          var curve = Curves.ease;
+                                          var tween = Tween(
+                                                  begin: begin, end: end)
+                                              .chain(CurveTween(curve: curve));
+                                          var offsetAnimation =
+                                              animation.drive(tween);
+
+                                          return SlideTransition(
+                                            position: offsetAnimation,
+                                            child: child,
+                                          );
+                                        },
+                                        transitionDuration:
+                                            Duration(milliseconds: 500),
+                                      ),
+                                    );
                                   },
-                                  child: Text("Tutup"),
+                                  child: Text("Ya"),
                                 ),
-                                TextButton(onPressed: (){
-                                    Navigator.of(context).pop();
-                                }, child: Text("Batalkan"))
+                                TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text("Batalkan"))
                               ],
                             );
                           },
