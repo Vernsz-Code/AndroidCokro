@@ -1,6 +1,5 @@
-import 'package:androidchokro/produkKeluarPage.dart';
-import 'package:androidchokro/loginPage.dart';
 import 'package:flutter/material.dart';
+import 'package:learn/loginPage.dart';
 
 void main() {
   runApp(MainApp());
@@ -11,7 +10,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: produkKeluarPage(),
+      home: loginPage(),
     );
   }
 }
