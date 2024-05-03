@@ -98,7 +98,8 @@ class MainPage extends StatelessWidget {
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
-                                    child: Text("Batalkan"))
+                                    child: Text("Batalkan"),),
+                                    
                               ],
                             );
                           },

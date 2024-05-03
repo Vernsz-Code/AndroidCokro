@@ -45,6 +45,85 @@ class produkKeluarPage extends StatelessWidget {
 
         ),
       ),
+      body: Center(
+        child: Column(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Container(
+                padding: EdgeInsets.only(left: 30, right: 30),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Container()
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        height: 30,
+                        width: 10,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 22, 219, 101),
+                            padding: EdgeInsets.only(left: 3)
+                          ),
+                          child: Text("Cetak",
+                          textAlign: TextAlign.right, style: TextStyle(
+                            color: Colors.white
+                          ),),
+                          onPressed: () => {},
+                        ),
+                      )
+                    ),
+                  ],
+                ),
+              )
+            ),
+            Expanded(
+              flex: 6,
+              child: Container(
+                padding: EdgeInsets.all(30),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                ),
+                child: Table(
+                  border: TableBorder.all(color: Colors.black, width: 1),
+                  children: const [
+                    TableRow(
+                      decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 22, 219, 101),
+                      ),
+                      children:[ 
+                        TableCell(
+                          
+                          child: Padding(
+                            padding: EdgeInsets.all(3),
+                            child: Text("Text 1", style: TextStyle(color: Colors.white),),
+                          ),
+                        ),
+                        TableCell(
+                          child: Padding(
+                            padding: EdgeInsets.all(3),
+                            child: Text("Text 2", style: TextStyle(color: Colors.white),),
+                          ),
+                        ),
+                        TableCell(
+                          child: Padding(
+                            padding: EdgeInsets.all(3),
+                            child: Text("Text 3", style: TextStyle(color: Colors.white),),
+                          ),
+                        ),
+                        
+                      ]
+                    ),
+                  ],
+                ),
+              )
+            )
+          ],
+        ),
+      ),
     );
   }
 }
