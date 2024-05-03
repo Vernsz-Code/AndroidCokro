@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:learn/produkKeluarPage.dart';
+import 'package:androidcokro/produkKeluarPage.dart';
 
 class loginPage extends StatefulWidget {
   const loginPage({super.key});
@@ -26,7 +26,8 @@ class _LoginPageState extends State<loginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      body: SingleChildScrollView(
+        child: Center(
           child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -87,7 +88,10 @@ class _LoginPageState extends State<loginPage> {
                                     size: 35,
                                     color: Colors.blue,
                                   ),
-                                  hintText: 'Masukkan teks',
+                                  hintText: 'Masukkan username',
+                                  hintStyle: TextStyle(
+                                    color: Colors.blue,
+                                  ),
                                   border: OutlineInputBorder(),
                                   labelText: "Username",
                                   labelStyle: TextStyle(
@@ -95,7 +99,7 @@ class _LoginPageState extends State<loginPage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 80.0),
+                            const SizedBox(height: 50.0),
                             Container(
                               width: 500, // Lebar column
                               child: TextField(
@@ -112,7 +116,7 @@ class _LoginPageState extends State<loginPage> {
                                 ),
                                 decoration: InputDecoration(
                                   icon: const Icon(
-                                    Icons.person,
+                                    Icons.lock,
                                     size: 35,
                                     color: Colors.blue,
                                   ),
@@ -126,15 +130,18 @@ class _LoginPageState extends State<loginPage> {
                                       icon: _obscureText
                                           ? const Icon(
                                               Icons.visibility,
-                                              size: 35,
+                                              size: 25,
                                               color: Colors.blue,
                                             )
                                           : const Icon(
                                               Icons.visibility_off,
-                                              size: 35,
+                                              size: 25,
                                               color: Colors.blue,
                                             )),
-                                  hintText: 'Masukkan teks',
+                                  hintText: 'Masukkan password',
+                                  hintStyle: TextStyle(
+                                    color: Colors.blue,
+                                  ),
                                   border: const OutlineInputBorder(),
                                   labelText: "Password",
                                   labelStyle: const TextStyle(
@@ -223,6 +230,7 @@ class _LoginPageState extends State<loginPage> {
           ),
         ],
       )),
+      )
     );
   }
 }

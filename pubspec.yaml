@@ -1,4 +1,4 @@
-name: learn
+name: androidcokro
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -49,8 +49,6 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
 
-  google_fonts: ^6.2.1
-
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -100,3 +98,6 @@ flutter:
       - family: rubik
         fonts:
           - asset: fonts/rubik.ttf
+      - family: Poppins
+        fonts:
+          - asset: fonts/Poppins-Regular.ttf

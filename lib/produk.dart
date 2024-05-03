@@ -1,8 +1,7 @@
 import 'package:androidcokro/credit.dart';
-import 'package:androidcokro/produk.dart';
 import 'package:flutter/material.dart';
 
-class produkKeluarPage extends StatelessWidget {
+class produk extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +25,7 @@ class produkKeluarPage extends StatelessWidget {
                   onPressed: () => {Scaffold.of(context).openDrawer()},
                 ),
               ),
-              title: const Text("Produk Keluar"),
+              title: const Text("Produk"),
               trailing: IconButton(
                 icon: const Icon(
                   Icons.exit_to_app_outlined,
@@ -124,113 +123,13 @@ class produkKeluarPage extends StatelessWidget {
                   padding: EdgeInsets.only(left: 30, right: 30),
                   child: Row(
                     children: [
-                      Expanded(
-                          child: Padding(
-                        padding: EdgeInsets.all(5),
-                        child: Text(
-                          'No Faktur : 0',
-                          style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w800,
-                              fontSize: 20),
-                        ),
-                      )),
                       Expanded(flex: 4, child: Container()),
                       Expanded(
                           flex: 1,
                           child: Container(
-                            height: 30,
+                            height: 50,
                             width: 10,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Color.fromARGB(255, 22, 219, 101),
-                                  padding: EdgeInsets.only(left: 3)),
-                              child: Text(
-                                "Cetak",
-                                textAlign: TextAlign.right,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: () => {},
-                            ),
-                          )),
-                    ],
-                  ),
-                )),
-            Expanded(
-                flex: 1,
-                child: Container(
-                  padding: EdgeInsets.only(left: 30, right: 30),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              'Total Produk : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Total Harga : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Total Diskon : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Total Bayar : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Kembalian : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        )
-                      ]),
-                )),
-            Expanded(
-                flex: 1,
-                child: Container(
-                  padding: EdgeInsets.only(left: 30, right: 30),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                          width: 200,
-                          child: TextField(
+                            child: TextField(
                               autocorrect: false,
                               cursorColor: Colors.green,
                               showCursor: true,
@@ -240,30 +139,8 @@ class produkKeluarPage extends StatelessWidget {
                                 hintText: "Kode Barang",
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(50)),
-                              ))),
-                      Row(
-                        children: [
-                          Container(
-                              width: 200,
-                              child: TextField(
-                                  autocorrect: false,
-                                  cursorColor: Colors.green,
-                                  showCursor: true,
-                                  textAlign: TextAlign.start,
-                                  textAlignVertical: TextAlignVertical.center,
-                                  decoration: InputDecoration(
-                                      hintText: "Bayar Rp.",
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(50),
-                                      ),
-                                      icon: Icon(Icons.payment)))),
-                          Checkbox(
-                            value: false,
-                            onChanged: (bool) {},
-                          ),
-                          Text("Credit")
-                        ],
-                      )
+                              )),
+                          )),
                     ],
                   ),
                 )),
@@ -318,33 +195,7 @@ class produkKeluarPage extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(left: 20),
                 child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder:
-                              (context, animation, secondaryAnimation) {
-                            return produk();
-                          },
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                            var begin = Offset(1.0, 0.0);
-                            var end = Offset.zero;
-                            var curve = Curves.ease;
-                            var tween = Tween(begin: begin, end: end)
-                                .chain(CurveTween(curve: curve));
-                            var offsetAnimation = animation.drive(tween);
-
-                            return SlideTransition(
-                              position: offsetAnimation,
-                              child: child,
-                            );
-                          },
-                          transitionDuration: Duration(milliseconds: 500),
-                        ),
-                      );
-                    },
+                    onPressed: () {},
                     child: Text(
                       'Cari Barang',
                       style: TextStyle(fontSize: 15.0, color: Colors.white),

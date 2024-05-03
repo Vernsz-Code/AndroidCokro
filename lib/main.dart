@@ -1,5 +1,8 @@
+import 'package:androidcokro/produk.dart';
 import 'package:flutter/material.dart';
-import 'package:learn/loginPage.dart';
+import 'package:androidcokro/loginPage.dart';
+import 'package:androidcokro/produkKeluarPage.dart';
+import 'package:androidcokro/credit.dart';
 
 void main() {
   runApp(MainApp());
