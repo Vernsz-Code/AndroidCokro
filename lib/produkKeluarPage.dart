@@ -61,13 +61,59 @@ class produkKeluarPage extends StatelessWidget {
             ListTile(
               title: const Text('Produk Keluar'),
               onTap: () {
-                // Add your logic here
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) {
+                      return const produkKeluarPage();
+                    },
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      var begin = const Offset(1.0, 0.0);
+                      var end = Offset.zero;
+                      var curve = Curves.ease;
+                      var tween = Tween(begin: begin, end: end)
+                          .chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
+                    transitionDuration: const Duration(milliseconds: 500),
+                  ),
+                );
               },
             ),
             ListTile(
               title: const Text('Produk'),
               onTap: () {
-                // Add your logic here
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) {
+                      return const produk();
+                    },
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      var begin = const Offset(1.0, 0.0);
+                      var end = Offset.zero;
+                      var curve = Curves.ease;
+                      var tween = Tween(begin: begin, end: end)
+                          .chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
+                    transitionDuration: const Duration(milliseconds: 500),
+                  ),
+                );
               },
             ),
             Expanded(
@@ -349,7 +395,8 @@ class produkKeluarPage extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.only(left: 30.0, right: 30.0),
-                        backgroundColor: const Color.fromARGB(255, 22, 219, 101)),
+                        backgroundColor:
+                            const Color.fromARGB(255, 22, 219, 101)),
                     child: const Text(
                       'Cari Barang',
                       style: TextStyle(fontSize: 15.0, color: Colors.white),
