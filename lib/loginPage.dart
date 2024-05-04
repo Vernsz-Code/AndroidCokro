@@ -1,23 +1,37 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:androidcokro/produkKeluarPage.dart';
+import 'package:http/http.dart';
 
 class loginPage extends StatefulWidget {
   const loginPage({super.key});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  // final String title;
-
   @override
   State<loginPage> createState() => _LoginPageState();
+}
+
+TextEditingController userController = TextEditingController();
+TextEditingController passController = TextEditingController();
+
+Login(String user, String pass) async {
+  try {
+    Response response = await get(
+        Uri.parse('http://10.0.2.2:6969/user/login/$user/$pass'),
+        headers: {'api-key': 'Cokrok-kasir-apikey-098979'});
+
+    if (response.statusCode == 200) {
+      return "Login berhasil";
+    } else if (response.statusCode == 404) {
+      final data = jsonDecode(response.body);
+      final message = data['message'];
+      return message;
+    } else {
+      return "Failed to fetch api!";
+    }
+  } catch (e) {
+    print(e);
+  }
 }
 
 class _LoginPageState extends State<loginPage> {
@@ -26,8 +40,8 @@ class _LoginPageState extends State<loginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Center(
+        body: SingleChildScrollView(
+      child: Center(
           child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -51,9 +65,8 @@ class _LoginPageState extends State<loginPage> {
                     height: 650.0,
                     width: 700.0,
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 56, 38, 150),
-                      borderRadius: BorderRadius.circular(15)
-                    ),
+                        color: const Color.fromARGB(255, 56, 38, 150),
+                        borderRadius: BorderRadius.circular(15)),
                     child: Center(
                       child: Column(children: [
                         const Text(
@@ -69,20 +82,21 @@ class _LoginPageState extends State<loginPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const SizedBox(height: 80.0),
-                            Container(
+                            SizedBox(
                               width: 500, // Lebar column
-                              child: const TextField(
+                              child: TextField(
+                                controller: userController,
                                 autocorrect: false,
                                 cursorColor: Colors.blue,
                                 showCursor: true,
                                 textAlign: TextAlign.start,
                                 textAlignVertical: TextAlignVertical.center,
                                 textCapitalization: TextCapitalization.none,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.blue,
                                   fontSize: 20.0,
                                 ),
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   icon: Icon(
                                     Icons.person,
                                     size: 35,
@@ -100,9 +114,10 @@ class _LoginPageState extends State<loginPage> {
                               ),
                             ),
                             const SizedBox(height: 50.0),
-                            Container(
+                            SizedBox(
                               width: 500, // Lebar column
                               child: TextField(
+                                controller: passController,
                                 autocorrect: false,
                                 cursorColor: Colors.blue,
                                 showCursor: true,
@@ -139,7 +154,7 @@ class _LoginPageState extends State<loginPage> {
                                               color: Colors.blue,
                                             )),
                                   hintText: 'Masukkan password',
-                                  hintStyle: TextStyle(
+                                  hintStyle: const TextStyle(
                                     color: Colors.blue,
                                   ),
                                   border: const OutlineInputBorder(),
@@ -150,43 +165,94 @@ class _LoginPageState extends State<loginPage> {
                               ),
                             ),
                             const SizedBox(height: 55.0),
-                            Container(
+                            SizedBox(
                               width: 500,
                               child: Center(
                                 child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    Navigator.push(
-                                      context,
-                                      PageRouteBuilder(
-                                        pageBuilder: (context, animation,
-                                            secondaryAnimation) {
-                                          return produkKeluarPage();
-                                        },
-                                        transitionsBuilder: (context, animation,
-                                            secondaryAnimation, child) {
-                                          var begin = Offset(1.0, 0.0);
-                                          var end = Offset.zero;
-                                          var curve = Curves.ease;
-                                          var tween = Tween(
-                                                  begin: begin, end: end)
-                                              .chain(CurveTween(curve: curve));
-                                          var offsetAnimation =
-                                              animation.drive(tween);
+                                  onPressed: () async {
+                                    if (userController.text.isEmpty ||
+                                        passController.text.isEmpty) {
+                                      showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text(
+                                                "Form Kosong",
+                                              ),
+                                              content: const Text(
+                                                  'Tolong isi user atau pass dengan benar!'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      {Navigator.pop(context)},
+                                                  child: const Text("Oke"),
+                                                )
+                                              ],
+                                            );
+                                          });
+                                    } else {
+                                      String response = await Login(
+                                          userController.text.toString(),
+                                          passController.text.toString());
 
-                                          return SlideTransition(
-                                            position: offsetAnimation,
-                                            child: child,
-                                          );
-                                        },
-                                        transitionDuration:
-                                            Duration(milliseconds: 500),
-                                      ),
-                                    );
+                                      if (response == "Login berhasil") {
+                                        Navigator.of(context).pop();
+                                        Navigator.push(
+                                          context,
+                                          PageRouteBuilder(
+                                            pageBuilder: (context, animation,
+                                                secondaryAnimation) {
+                                              return const produkKeluarPage();
+                                            },
+                                            transitionsBuilder: (context,
+                                                animation,
+                                                secondaryAnimation,
+                                                child) {
+                                              var begin =
+                                                  const Offset(1.0, 0.0);
+                                              var end = Offset.zero;
+                                              var curve = Curves.ease;
+                                              var tween = Tween(
+                                                      begin: begin, end: end)
+                                                  .chain(
+                                                      CurveTween(curve: curve));
+                                              var offsetAnimation =
+                                                  animation.drive(tween);
+
+                                              return SlideTransition(
+                                                position: offsetAnimation,
+                                                child: child,
+                                              );
+                                            },
+                                            transitionDuration: const Duration(
+                                                milliseconds: 500),
+                                          ),
+                                        );
+                                      } else {
+                                        showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title: const Text(
+                                                  "Login Gagal",
+                                                ),
+                                                content: Text(response),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => {
+                                                      Navigator.pop(context)
+                                                    },
+                                                    child: const Text("Oke"),
+                                                  )
+                                                ],
+                                              );
+                                            });
+                                      }
+                                    }
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue,
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                       horizontal: 20,
                                       vertical: 10,
                                     ), // Button padding
@@ -194,13 +260,13 @@ class _LoginPageState extends State<loginPage> {
                                       borderRadius: BorderRadius.circular(
                                           10), // Button border radius
                                     ),
-                                    textStyle: TextStyle(
+                                    textStyle: const TextStyle(
                                       fontSize: 16, // Text size
                                       fontWeight:
                                           FontWeight.bold, // Text weight
                                     ),
                                   ),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Image(
@@ -230,7 +296,6 @@ class _LoginPageState extends State<loginPage> {
           ),
         ],
       )),
-      )
-    );
+    ));
   }
 }

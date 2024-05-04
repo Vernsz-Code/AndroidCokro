@@ -2,6 +2,8 @@ import 'package:androidcokro/credit.dart';
 import 'package:flutter/material.dart';
 
 class produk extends StatelessWidget {
+  const produk({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,8 +46,8 @@ class produk extends StatelessWidget {
             Container(
               width: double.infinity,
               height: 100.0,
-              color: Color.fromARGB(255, 22, 178, 84),
-              child: DrawerHeader(
+              color: const Color.fromARGB(255, 22, 178, 84),
+              child: const DrawerHeader(
                 child: Text(
                   'Cokro4Mart Cashier',
                   style: TextStyle(
@@ -56,13 +58,13 @@ class produk extends StatelessWidget {
               ),
             ),
             ListTile(
-              title: Text('Produk Keluar'),
+              title: const Text('Produk Keluar'),
               onTap: () {
                 // Add your logic here
               },
             ),
             ListTile(
-              title: Text('Produk'),
+              title: const Text('Produk'),
               onTap: () {
                 // Add your logic here
               },
@@ -71,7 +73,7 @@ class produk extends StatelessWidget {
               child: Align(
                 alignment: FractionalOffset.bottomLeft,
                 child: Padding(
-                  padding: EdgeInsets.only(left: 16.0, bottom: 16.0),
+                  padding: const EdgeInsets.only(left: 16.0, bottom: 16.0),
                   child: TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -80,11 +82,11 @@ class produk extends StatelessWidget {
                         PageRouteBuilder(
                           pageBuilder:
                               (context, animation, secondaryAnimation) {
-                            return credit();
+                            return const credit();
                           },
                           transitionsBuilder:
                               (context, animation, secondaryAnimation, child) {
-                            var begin = Offset(1.0, 0.0);
+                            var begin = const Offset(1.0, 0.0);
                             var end = Offset.zero;
                             var curve = Curves.ease;
                             var tween = Tween(begin: begin, end: end)
@@ -96,11 +98,11 @@ class produk extends StatelessWidget {
                               child: child,
                             );
                           },
-                          transitionDuration: Duration(milliseconds: 500),
+                          transitionDuration: const Duration(milliseconds: 500),
                         ),
                       );
                     },
-                    child: Text(
+                    child: const Text(
                       'Credit',
                       style: TextStyle(
                         color: Color.fromARGB(255, 226, 225, 225),
@@ -120,13 +122,13 @@ class produk extends StatelessWidget {
             Expanded(
                 flex: 1,
                 child: Container(
-                  padding: EdgeInsets.only(left: 30, right: 30),
+                  padding: const EdgeInsets.only(left: 30, right: 30),
                   child: Row(
                     children: [
                       Expanded(flex: 4, child: Container()),
                       Expanded(
                           flex: 1,
-                          child: Container(
+                          child: SizedBox(
                             height: 50,
                             width: 10,
                             child: TextField(
@@ -147,8 +149,8 @@ class produk extends StatelessWidget {
             Expanded(
                 flex: 6,
                 child: Container(
-                  padding: EdgeInsets.all(30),
-                  decoration: BoxDecoration(
+                  padding: const EdgeInsets.all(30),
+                  decoration: const BoxDecoration(
                     color: Colors.white,
                   ),
                   child: Table(
@@ -193,16 +195,16 @@ class produk extends StatelessWidget {
             Expanded(
                 child: Row(children: [
               Padding(
-                padding: EdgeInsets.only(left: 20),
+                padding: const EdgeInsets.only(left: 20),
                 child: ElevatedButton(
                     onPressed: () {},
-                    child: Text(
+                    style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.only(left: 30.0, right: 30.0),
+                        backgroundColor: const Color.fromARGB(255, 22, 219, 101)),
+                    child: const Text(
                       'Cari Barang',
                       style: TextStyle(fontSize: 15.0, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.only(left: 30.0, right: 30.0),
-                        backgroundColor: Color.fromARGB(255, 22, 219, 101))),
+                    )),
               )
             ]))
           ],

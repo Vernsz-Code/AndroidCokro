@@ -1,17 +1,16 @@
-import 'package:androidcokro/produk.dart';
 import 'package:flutter/material.dart';
 import 'package:androidcokro/loginPage.dart';
-import 'package:androidcokro/produkKeluarPage.dart';
-import 'package:androidcokro/credit.dart';
 
 void main() {
-  runApp(MainApp());
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
+  const MainApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: loginPage(),
     );
@@ -19,6 +18,8 @@ class MainApp extends StatelessWidget {
 }
 
 class MainPage extends StatelessWidget {
+  const MainPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,11 +32,11 @@ class MainPage extends StatelessWidget {
       ),
       body: Center(
         child: Container(
-          padding: EdgeInsets.only(top: 20, left: 10, right: 10),
+          padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
           height: 700,
           width: 600,
           decoration: BoxDecoration(
-            color: Color.fromARGB(255, 60, 205, 65),
+            color: const Color.fromARGB(255, 60, 205, 65),
             borderRadius: BorderRadius.circular(0),
           ),
           child: Column(
@@ -53,15 +54,15 @@ class MainPage extends StatelessWidget {
                   ),
                   Expanded(
                     child: ElevatedButton(
-                      child: Text("Login"),
+                      child: const Text("Login"),
                       onPressed: () {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
-                              title: Text("Ini notif"),
+                              title: const Text("Ini notif"),
                               content:
-                                  Text("Apakah Anda ingin pindah halaman?"),
+                                  const Text("Apakah Anda ingin pindah halaman?"),
                               actions: [
                                 TextButton(
                                   onPressed: () {
@@ -71,11 +72,11 @@ class MainPage extends StatelessWidget {
                                       PageRouteBuilder(
                                         pageBuilder: (context, animation,
                                             secondaryAnimation) {
-                                          return loginPage();
+                                          return const loginPage();
                                         },
                                         transitionsBuilder: (context, animation,
                                             secondaryAnimation, child) {
-                                          var begin = Offset(1.0, 0.0);
+                                          var begin = const Offset(1.0, 0.0);
                                           var end = Offset.zero;
                                           var curve = Curves.ease;
                                           var tween = Tween(
@@ -90,17 +91,17 @@ class MainPage extends StatelessWidget {
                                           );
                                         },
                                         transitionDuration:
-                                            Duration(milliseconds: 500),
+                                            const Duration(milliseconds: 500),
                                       ),
                                     );
                                   },
-                                  child: Text("Ya"),
+                                  child: const Text("Ya"),
                                 ),
                                 TextButton(
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
-                                    child: Text("Batalkan"),),
+                                    child: const Text("Batalkan"),),
                                     
                               ],
                             );
@@ -114,7 +115,7 @@ class MainPage extends StatelessWidget {
               Container(
                 height: 5,
                 width: 580,
-                margin: EdgeInsets.only(top: 10),
+                margin: const EdgeInsets.only(top: 10),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(5),

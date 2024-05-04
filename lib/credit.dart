@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class credit extends StatelessWidget {
   const credit({super.key});
@@ -9,40 +8,40 @@ class credit extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Container(
+              SizedBox(
                 width: 200,
                 height: 200,
                 child: Image(image: AssetImage("images/1.png")),
               ),
               SizedBox(width: 8), // Jarak antara gambar
-              Container(
+              SizedBox(
                 width: 200,
                 height: 200,
                 child: Image(image: AssetImage("images/2.png")),
               ),
               SizedBox(width: 8), // Jarak antara gambar
-              Container(
+              SizedBox(
                 width: 200,
                 height: 200,
                 child: Image(image: AssetImage("images/3.png")),
               ),
               SizedBox(width: 8), // Jarak antara gambar
-              Container(
+              SizedBox(
                 width: 200,
                 height: 200,
                 child: Image(image: AssetImage("images/4.png")),
               ),
               SizedBox(width: 8), // Jarak antara gambar
-              Container(
+              SizedBox(
                 width: 200,
                 height: 200,
                 child: Image(image: AssetImage("images/5.png")),
               ),
               SizedBox(width: 8), // Jarak antara gambar
-              Container(
+              SizedBox(
                 width: 200,
                 height: 200,
                 child: Image(image: AssetImage("images/6.png")),
@@ -50,46 +49,46 @@ class credit extends StatelessWidget {
               // Tambahkan lebih banyak widget Container gambar jika diperlukan
             ],
           ),
-          Column(
+          const Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               SizedBox(height: 100),
-              Container(
+              SizedBox(
                 width: 200,
                 height: 200,
                 child: Image(image: AssetImage("images/7.png")),
               ),
               SizedBox(width: 8), // Jarak antara gambar
-              Container(
+              SizedBox(
                 width: 200,
                 height: 200,
                 child: Image(image: AssetImage("images/8.png")),
               ),
               SizedBox(width: 8), // Jarak antara gambar
-              Container(
+              SizedBox(
                 width: 200,
                 height: 200,
                 child: Image(image: AssetImage("images/9.png")),
               )
             ],
           ),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Container(
+                  SizedBox(
                     width: 200,
                     height: 200,
                     child: Image(image: AssetImage("images/10.png")),
                   ), // Jarak antara gambar
-                  Container(
+                  SizedBox(
                     width: 200,
                     height: 200,
                     child: Image(image: AssetImage("images/13.png")),
                   ), // Jarak antara gambar
-                  Container(
+                  SizedBox(
                     width: 200,
                     height: 200,
                     child: Image(image: AssetImage("images/12.png")),
@@ -98,7 +97,7 @@ class credit extends StatelessWidget {
               )
             ],
           ),
-          Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+          const Column(mainAxisAlignment: MainAxisAlignment.start, children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -134,14 +133,14 @@ class credit extends StatelessWidget {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: Text("Easter Egg mWHEHEH"),
-                        content: Text("RESTART UNTUK KEMBALI WKWKW"),
+                        title: const Text("Easter Egg mWHEHEH"),
+                        content: const Text("RESTART UNTUK KEMBALI WKWKW"),
                         actions: [
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            child: Text("Batalkan"),
+                            child: const Text("Batalkan"),
                           ),
                         ],
                       );
@@ -149,7 +148,7 @@ class credit extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 10,
                 ), // Button padding
@@ -157,12 +156,12 @@ class credit extends StatelessWidget {
                   borderRadius:
                       BorderRadius.circular(10), // Button border radius
                 ),
-                textStyle: TextStyle(
+                textStyle: const TextStyle(
                   fontSize: 16, // Text size
                   fontWeight: FontWeight.bold, // Text weight
                 ),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('KEMBALI',
