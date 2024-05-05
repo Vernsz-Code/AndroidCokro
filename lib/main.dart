@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:androidcokro/loginPage.dart';
+import 'package:androidcokro/SplashScreen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -12,7 +13,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: loginPage(),
+      home: splashScreen(),
     );
   }
 }
@@ -61,8 +62,8 @@ class MainPage extends StatelessWidget {
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: const Text("Ini notif"),
-                              content:
-                                  const Text("Apakah Anda ingin pindah halaman?"),
+                              content: const Text(
+                                  "Apakah Anda ingin pindah halaman?"),
                               actions: [
                                 TextButton(
                                   onPressed: () {
@@ -98,11 +99,11 @@ class MainPage extends StatelessWidget {
                                   child: const Text("Ya"),
                                 ),
                                 TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text("Batalkan"),),
-                                    
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text("Batalkan"),
+                                ),
                               ],
                             );
                           },

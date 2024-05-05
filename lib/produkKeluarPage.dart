@@ -124,8 +124,7 @@ class produkKeluarPage extends StatelessWidget {
                   child: TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
+                      Navigator.of(context).pushReplacement(
                         PageRouteBuilder(
                           pageBuilder:
                               (context, animation, secondaryAnimation) {
