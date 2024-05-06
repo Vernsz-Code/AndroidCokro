@@ -1,8 +1,11 @@
 import 'dart:convert';
 
+import 'package:androidcokro/change_api.dart';
 import 'package:flutter/material.dart';
 import 'package:androidcokro/produkKeluarPage.dart';
 import 'package:http/http.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class loginPage extends StatefulWidget {
   const loginPage({super.key});
@@ -14,10 +17,24 @@ class loginPage extends StatefulWidget {
 TextEditingController userController = TextEditingController();
 TextEditingController passController = TextEditingController();
 
+Future<String> readBaseUrl() async {
+  try {
+    final directory = await getExternalStorageDirectory();
+    final file = File('${directory?.path}/data.json');
+    final data = await file.readAsString();
+    final jsonData = jsonDecode(data);
+    final String baseUrl = jsonData['base_url'];
+    return baseUrl;
+  } catch (e) {
+    print(e);
+    return 'Eror';
+  }
+}
+
 Login(String user, String pass) async {
   try {
-    Response response = await get(
-        Uri.parse('http://10.0.2.2:6969/user/login/$user/$pass'),
+    String baseUrl = await readBaseUrl();
+    Response response = await get(Uri.parse('$baseUrl/user/login/$user/$pass'),
         headers: {'api-key': 'Cokrok-kasir-apikey-098979'});
 
     if (response.statusCode == 200) {
@@ -31,6 +48,7 @@ Login(String user, String pass) async {
     }
   } catch (e) {
     print(e);
+    return "Kesalahan koneksi atau kesalahan lainnya";
   }
 }
 
@@ -190,15 +208,19 @@ class _LoginPageState extends State<loginPage> {
                                               ],
                                             );
                                           });
+                                    } else if (userController.text == 'api' ||
+                                        passController.text == 'api') {
+                                      Navigator.of(context)
+                                          .pushReplacement(MaterialPageRoute(
+                                        builder: (context) => const changeApi(),
+                                      ));
                                     } else {
                                       String response = await Login(
                                           userController.text.toString(),
                                           passController.text.toString());
 
                                       if (response == "Login berhasil") {
-                                        Navigator.of(context).pop();
-                                        Navigator.push(
-                                          context,
+                                        Navigator.of(context).pushReplacement(
                                           PageRouteBuilder(
                                             pageBuilder: (context, animation,
                                                 secondaryAnimation) {

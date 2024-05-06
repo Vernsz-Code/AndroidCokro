@@ -3,7 +3,6 @@
 import 'package:androidcokro/loginPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
 class splashScreen extends StatefulWidget {
   const splashScreen({super.key});
@@ -19,7 +18,7 @@ class _splashScreenState extends State<splashScreen>
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (_) => const loginPage(),
       ));
@@ -41,15 +40,15 @@ class _splashScreenState extends State<splashScreen>
       decoration: const BoxDecoration(
         color: Color.fromARGB(255, 22, 219, 101),
       ),
-      child: Column(
+      child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Image(
+          Image(
             image: AssetImage('images/k4.png'),
             width: 200,
             height: 200,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             "K4 DEVELOPER",
             style: TextStyle(
