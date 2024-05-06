@@ -1,9 +1,9 @@
 import 'package:androidcokro/credit.dart';
-import 'package:androidcokro/produk.dart';
+import 'package:androidcokro/produkKeluarPage.dart';
 import 'package:flutter/material.dart';
 
-class produkKeluarPage extends StatelessWidget {
-  const produkKeluarPage({super.key});
+class produk extends StatelessWidget {
+  const produk({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class produkKeluarPage extends StatelessWidget {
                   onPressed: () => {Scaffold.of(context).openDrawer()},
                 ),
               ),
-              title: const Text("Produk Keluar"),
+              title: const Text("Produk"),
               trailing: IconButton(
                 icon: const Icon(
                   Icons.exit_to_app_outlined,
@@ -124,7 +124,8 @@ class produkKeluarPage extends StatelessWidget {
                   child: TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      Navigator.of(context).pushReplacement(
+                      Navigator.push(
+                        context,
                         PageRouteBuilder(
                           pageBuilder:
                               (context, animation, secondaryAnimation) {
@@ -171,146 +172,24 @@ class produkKeluarPage extends StatelessWidget {
                   padding: const EdgeInsets.only(left: 30, right: 30),
                   child: Row(
                     children: [
-                      const Expanded(
-                          child: Padding(
-                        padding: EdgeInsets.all(5),
-                        child: Text(
-                          'No Faktur : 0',
-                          style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w800,
-                              fontSize: 20),
-                        ),
-                      )),
                       Expanded(flex: 4, child: Container()),
                       Expanded(
                           flex: 1,
                           child: SizedBox(
-                            height: 30,
+                            height: 50,
                             width: 10,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      const Color.fromARGB(255, 22, 219, 101),
-                                  padding: const EdgeInsets.only(left: 3)),
-                              child: const Text(
-                                "Cetak",
-                                textAlign: TextAlign.right,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: () => {},
-                            ),
+                            child: TextField(
+                                autocorrect: false,
+                                cursorColor: Colors.green,
+                                showCursor: true,
+                                textAlign: TextAlign.start,
+                                textAlignVertical: TextAlignVertical.center,
+                                decoration: InputDecoration(
+                                  hintText: "Kode Barang",
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(50)),
+                                )),
                           )),
-                    ],
-                  ),
-                )),
-            Expanded(
-                flex: 1,
-                child: Container(
-                  padding: const EdgeInsets.only(left: 30, right: 30),
-                  child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              'Total Produk : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Total Harga : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Total Diskon : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Total Bayar : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Kembalian : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20),
-                            )
-                          ],
-                        )
-                      ]),
-                )),
-            Expanded(
-                flex: 1,
-                child: Container(
-                  padding: const EdgeInsets.only(left: 30, right: 30),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                          width: 200,
-                          child: TextField(
-                              autocorrect: false,
-                              cursorColor: Colors.green,
-                              showCursor: true,
-                              textAlign: TextAlign.start,
-                              textAlignVertical: TextAlignVertical.center,
-                              decoration: InputDecoration(
-                                hintText: "Kode Barang",
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50)),
-                              ))),
-                      Row(
-                        children: [
-                          SizedBox(
-                              width: 200,
-                              child: TextField(
-                                  autocorrect: false,
-                                  cursorColor: Colors.green,
-                                  showCursor: true,
-                                  textAlign: TextAlign.start,
-                                  textAlignVertical: TextAlignVertical.center,
-                                  decoration: InputDecoration(
-                                      hintText: "Bayar Rp.",
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(50),
-                                      ),
-                                      icon: const Icon(Icons.payment)))),
-                          Checkbox(
-                            value: false,
-                            onChanged: (bool) {},
-                          ),
-                          const Text("Credit")
-                        ],
-                      )
                     ],
                   ),
                 )),
@@ -365,33 +244,7 @@ class produkKeluarPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 20),
                 child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder:
-                              (context, animation, secondaryAnimation) {
-                            return const produk();
-                          },
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                            var begin = const Offset(1.0, 0.0);
-                            var end = Offset.zero;
-                            var curve = Curves.ease;
-                            var tween = Tween(begin: begin, end: end)
-                                .chain(CurveTween(curve: curve));
-                            var offsetAnimation = animation.drive(tween);
-
-                            return SlideTransition(
-                              position: offsetAnimation,
-                              child: child,
-                            );
-                          },
-                          transitionDuration: const Duration(milliseconds: 500),
-                        ),
-                      );
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.only(left: 30.0, right: 30.0),
                         backgroundColor:
