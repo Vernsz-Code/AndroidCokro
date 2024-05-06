@@ -1,3 +1,5 @@
+import 'package:androidcokro/cariProdukPage.dart';
+import 'package:androidcokro/produkKeluarPage.dart';
 import 'package:flutter/material.dart';
 import 'package:androidcokro/loginPage.dart';
 import 'package:androidcokro/SplashScreen.dart';
@@ -13,7 +15,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: splashScreen(),
+      home: cariProdukPage(),
     );
   }
 }
