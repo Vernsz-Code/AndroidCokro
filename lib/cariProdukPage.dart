@@ -64,6 +64,7 @@ class _cariProdukPageState extends State<cariProdukPage> {
   }
 
 
+
   Future<void> fetchProduk() async {
     try {
        String baseUrl = await readBaseUrl();
@@ -136,6 +137,25 @@ class _cariProdukPageState extends State<cariProdukPage> {
                   subtitle: Text('Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}'),
                 );
               },
+            ),
+          ),
+          Expanded(
+            child: Container(
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(
+                  padding: EdgeInsets.all(3),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromARGB(255, 22, 219, 101),
+                    ),
+                    child: Text("Pilih Barang", style: TextStyle(color: Colors.white),),
+                    onPressed: ()=>{
+                      
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         ],
