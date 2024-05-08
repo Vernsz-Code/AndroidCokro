@@ -139,8 +139,8 @@ class _cariProdukPageState extends State<cariProdukPage> {
               },
             ),
           ),
-          Expanded(
-            child: Container(
+          Container(
+              height: 100,
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Padding(
@@ -157,7 +157,6 @@ class _cariProdukPageState extends State<cariProdukPage> {
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
