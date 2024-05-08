@@ -6,6 +6,7 @@ import 'package:androidcokro/produkKeluarPage.dart';
 import 'package:http/http.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class loginPage extends StatefulWidget {
   const loginPage({super.key});
@@ -54,6 +55,91 @@ Login(String user, String pass) async {
 
 class _LoginPageState extends State<loginPage> {
   bool _obscureText = true;
+  final Connectivity _connectivity = Connectivity();
+
+  Future<void> checkConnection() async {
+    var connectivityResult = await _connectivity.checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Tidak Ada Koneksi Internet"),
+            content: const Text("Pastikan Anda terhubung ke internet untuk melanjutkan."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Oke'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      loginProcess();
+    }
+  }
+
+  Future<void> loginProcess() async {
+    if (userController.text.isEmpty || passController.text.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Form Kosong"),
+            content: const Text('Tolong isi user atau pass dengan benar!'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Oke"),
+              )
+            ],
+          );
+        });
+    } else if (userController.text == 'api' && passController.text == 'config') {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (context) => const changeApi(),
+      ));
+    } else {
+      String response = await Login(userController.text, passController.text);
+      if (response == "Login berhasil") {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => const produkKeluarPage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              var begin = const Offset(1.0, 0.0);
+              var end = Offset.zero;
+              var curve = Curves.ease;
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Login Gagal"),
+              content: Text(response),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Oke"),
+                )
+              ],
+            );
+          });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,89 +274,7 @@ class _LoginPageState extends State<loginPage> {
                               child: Center(
                                 child: ElevatedButton(
                                   onPressed: () async {
-                                    if (userController.text.isEmpty ||
-                                        passController.text.isEmpty) {
-                                      showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: const Text(
-                                                "Form Kosong",
-                                              ),
-                                              content: const Text(
-                                                  'Tolong isi user atau pass dengan benar!'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      {Navigator.pop(context)},
-                                                  child: const Text("Oke"),
-                                                )
-                                              ],
-                                            );
-                                          });
-                                    } else if (userController.text == 'api' ||
-                                        passController.text == 'api') {
-                                      Navigator.of(context)
-                                          .pushReplacement(MaterialPageRoute(
-                                        builder: (context) => const changeApi(),
-                                      ));
-                                    } else {
-                                      String response = await Login(
-                                          userController.text.toString(),
-                                          passController.text.toString());
-
-                                      if (response == "Login berhasil") {
-                                        Navigator.of(context).pushReplacement(
-                                          PageRouteBuilder(
-                                            pageBuilder: (context, animation,
-                                                secondaryAnimation) {
-                                              return const produkKeluarPage();
-                                            },
-                                            transitionsBuilder: (context,
-                                                animation,
-                                                secondaryAnimation,
-                                                child) {
-                                              var begin =
-                                                  const Offset(1.0, 0.0);
-                                              var end = Offset.zero;
-                                              var curve = Curves.ease;
-                                              var tween = Tween(
-                                                      begin: begin, end: end)
-                                                  .chain(
-                                                      CurveTween(curve: curve));
-                                              var offsetAnimation =
-                                                  animation.drive(tween);
-
-                                              return SlideTransition(
-                                                position: offsetAnimation,
-                                                child: child,
-                                              );
-                                            },
-                                            transitionDuration: const Duration(
-                                                milliseconds: 500),
-                                          ),
-                                        );
-                                      } else {
-                                        showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: const Text(
-                                                  "Login Gagal",
-                                                ),
-                                                content: Text(response),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () => {
-                                                      Navigator.pop(context)
-                                                    },
-                                                    child: const Text("Oke"),
-                                                  )
-                                                ],
-                                              );
-                                            });
-                                      }
-                                    }
+                                    await checkConnection();
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue,

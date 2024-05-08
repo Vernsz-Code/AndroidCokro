@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class cariProdukPage extends StatefulWidget {
   const cariProdukPage({super.key});
@@ -15,11 +16,12 @@ class _cariProdukPageState extends State<cariProdukPage> {
   List<dynamic> produkList = [];
   List<dynamic> filteredProdukList = [];
   TextEditingController searchController = TextEditingController();
+  final Connectivity _connectivity = Connectivity();
 
   @override
   void initState() {
     super.initState();
-    fetchProduk();
+    checkConnection();
   }
 
   Future<String> readBaseUrl() async {
@@ -35,6 +37,31 @@ class _cariProdukPageState extends State<cariProdukPage> {
     return 'Eror';
   }
 }
+
+ Future<void> checkConnection() async {
+    var connectivityResult = await _connectivity.checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Tidak Ada Koneksi Internet"),
+            content: const Text("Pastikan Anda terhubung ke internet untuk melanjutkan."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Oke'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      fetchProduk();
+    }
+  }
 
 
 

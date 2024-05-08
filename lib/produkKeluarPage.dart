@@ -353,7 +353,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                 padding: const EdgeInsets.only(left: 20),
                 child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacement(
+                      Navigator.push(
                         context,
                         PageRouteBuilder(
                           pageBuilder:
