@@ -1,7 +1,7 @@
+import 'package:androidcokro/cariProdukPage.dart';
 import 'package:androidcokro/credit.dart';
 import 'package:androidcokro/produk.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class produkKeluarPage extends StatefulWidget {
   const produkKeluarPage({super.key});
@@ -70,7 +70,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                 Navigator.of(context).pop();
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => produkKeluarPage()),
+                  MaterialPageRoute(builder: (context) => const produkKeluarPage()),
                 );
               },
             ),
@@ -82,7 +82,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                   context,
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) {
-                      return const produk();
+                      return const Produk();
                     },
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
@@ -353,13 +353,12 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                 padding: const EdgeInsets.only(left: 20),
                 child: ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
                       Navigator.pushReplacement(
                         context,
                         PageRouteBuilder(
                           pageBuilder:
                               (context, animation, secondaryAnimation) {
-                            return const produk();
+                            return const cariProdukPage();
                           },
                           transitionsBuilder:
                               (context, animation, secondaryAnimation, child) {

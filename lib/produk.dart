@@ -1,15 +1,87 @@
 import 'package:androidcokro/credit.dart';
 import 'package:androidcokro/produkKeluarPage.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
-class produk extends StatefulWidget {
-  const produk({super.key});
+class Produk extends StatefulWidget {
+  const Produk({super.key});
 
   @override
-  State<produk> createState() => _produkState();
+  _ProdukState createState() => _ProdukState();
 }
 
-class _produkState extends State<produk> {
+class _ProdukState extends State<Produk> {
+  List<dynamic> produkList = [];
+  List<dynamic> filteredProdukList = [];
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProduk();
+  }
+
+  Future<String> readBaseUrl() async {
+    try {
+      final directory = await getExternalStorageDirectory();
+      final file = File('${directory?.path}/data.json');
+      final data = await file.readAsString();
+      final jsonData = jsonDecode(data);
+      final String baseUrl = jsonData['base_url'];
+      return baseUrl;
+    } catch (e) {
+      print(e);
+      return 'Eror';
+    }
+  }
+
+  Future<void> fetchProduk() async {
+    try {
+      String baseUrl = await readBaseUrl();
+      final response = await get(Uri.parse('$baseUrl/get-data/products/all'),
+          headers: {'api-key': 'Cokrok-kasir-apikey-098979'});
+      if (response.statusCode == 200) {
+        var decodedResponse = json.decode(response.body);
+        if (decodedResponse['data'] != null) {
+          setState(() {
+            produkList = decodedResponse['data'];
+            filteredProdukList = produkList;
+          });
+        } else {
+          throw Exception('Data produk tidak ditemukan dalam respons');
+        }
+      } else {
+        throw Exception(
+            'Gagal memuat data dari API dengan status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Terjadi kesalahan saat memuat data: $e');
+    }
+  }
+
+  void searchProduct(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredProdukList = produkList;
+      });
+    } else {
+      List<dynamic> tempSearchList = [];
+      for (var item in produkList) {
+        // Periksa apakah query terdapat dalam kode_brg atau nama_brg
+        if (item['nama_brg'].toLowerCase().contains(query.toLowerCase()) ||
+            item['kode_brg'].toLowerCase().contains(query.toLowerCase())) {
+          tempSearchList.add(item);
+        }
+      }
+      setState(() {
+        filteredProdukList = tempSearchList;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +105,7 @@ class _produkState extends State<produk> {
                   onPressed: () => {Scaffold.of(context).openDrawer()},
                 ),
               ),
-              title: const Text("Produk"),
+              title: const Text("Produk Keluar"),
               trailing: IconButton(
                 icon: const Icon(
                   Icons.exit_to_app_outlined,
@@ -64,10 +136,8 @@ class _produkState extends State<produk> {
               ),
             ),
             ListTile(
-
               title: const Text('Produk Keluar'),
               onTap: () {
-                Navigator.of(context).pop();
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
@@ -96,10 +166,10 @@ class _produkState extends State<produk> {
             ListTile(
               title: const Text('Produk'),
               onTap: () {
-                Navigator.of(context).pop();
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => produk()),
+                  MaterialPageRoute(
+                      builder: (context) => const Produk()),
                 );
               },
             ),
@@ -110,9 +180,7 @@ class _produkState extends State<produk> {
                   padding: const EdgeInsets.only(left: 16.0, bottom: 16.0),
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.pushReplacement(
-                        context,
+                      Navigator.of(context).pushReplacement(
                         PageRouteBuilder(
                           pageBuilder:
                               (context, animation, secondaryAnimation) {
@@ -150,100 +218,33 @@ class _produkState extends State<produk> {
           ],
         ),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Expanded(
-                flex: 1,
-                child: Container(
-                  padding: const EdgeInsets.only(left: 30, right: 30),
-                  child: Row(
-                    children: [
-                      Expanded(flex: 4, child: Container()),
-                      Expanded(
-                          flex: 1,
-                          child: SizedBox(
-                            height: 50,
-                            width: 10,
-                            child: TextField(
-                                autocorrect: false,
-                                cursorColor: Colors.green,
-                                showCursor: true,
-                                textAlign: TextAlign.start,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: InputDecoration(
-                                  hintText: "Kode Barang",
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(50)),
-                                )),
-                          )),
-                    ],
-                  ),
-                )),
-            Expanded(
-                flex: 6,
-                child: Container(
-                  padding: const EdgeInsets.all(30),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                  ),
-                  child: Table(
-                    border: TableBorder.all(color: Colors.black, width: 1),
-                    children: const [
-                      TableRow(
-                          decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 22, 219, 101),
-                          ),
-                          children: [
-                            TableCell(
-                              child: Padding(
-                                padding: EdgeInsets.all(3),
-                                child: Text(
-                                  "Text 1",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                            TableCell(
-                              child: Padding(
-                                padding: EdgeInsets.all(3),
-                                child: Text(
-                                  "Text 2",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                            TableCell(
-                              child: Padding(
-                                padding: EdgeInsets.all(3),
-                                child: Text(
-                                  "Text 3",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          ]),
-                    ],
-                  ),
-                )),
-            Expanded(
-                child: Row(children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.only(left: 30.0, right: 30.0),
-                        backgroundColor:
-                            const Color.fromARGB(255, 22, 219, 101)),
-                    child: const Text(
-                      'Cari Barang',
-                      style: TextStyle(fontSize: 15.0, color: Colors.white),
-                    )),
-              )
-            ]))
-          ],
-        ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                labelText: 'Cari Produk',
+                suffixIcon: Icon(Icons.search),
+              ),
+              onChanged: searchProduct,
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: filteredProdukList.length,
+              itemBuilder: (context, index) {
+                var produk = filteredProdukList[index];
+                return ListTile(
+                  title: Text('${produk['kode_brg']} - ${produk['nama_brg']}'),
+                  subtitle: Text(
+                      'Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}'),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
