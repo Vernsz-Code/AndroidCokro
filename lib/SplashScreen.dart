@@ -3,6 +3,7 @@
 import 'package:androidcokro/loginPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class splashScreen extends StatefulWidget {
   const splashScreen({super.key});
@@ -13,15 +14,43 @@ class splashScreen extends StatefulWidget {
 
 class _splashScreenState extends State<splashScreen>
     with SingleTickerProviderStateMixin {
+  final Connectivity _connectivity = Connectivity();
+
+  Future<void> checkConnection() async {
+    var connectivityResult = await _connectivity.checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Tidak Ada Koneksi Internet"),
+            content: const Text(
+                "Pastikan Anda terhubung ke internet untuk melanjutkan."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Oke'),
+                onPressed: () {
+                  SystemNavigator.pop();
+                },
+              ),
+            ],
+          );
+        },
+      ).then((_)=> SystemNavigator.pop());
+    } else {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (_) => const loginPage(),
+      ));
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
     Future.delayed(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (_) => const loginPage(),
-      ));
+      checkConnection();
     });
   }
 

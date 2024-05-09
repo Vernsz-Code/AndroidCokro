@@ -4,6 +4,7 @@ import 'package:androidcokro/loginPage.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart';
 
 class changeApi extends StatefulWidget {
   const changeApi({super.key});
@@ -55,7 +56,37 @@ Future<void> readJsonFromFile(BuildContext context) async {
     final data = await file.readAsString();
     final jsonData = jsonDecode(data);
     final String baseUrl = jsonData['base_url'];
-    showAlert(context, 'Nama dari file JSON: $baseUrl');
+    showAlert(context, 'Base Url: $baseUrl');
+  } catch (e) {
+    showAlert(context, 'Error: $e');
+  }
+}
+
+Future<String> readBaseUrl() async {
+  try {
+    final directory = await getExternalStorageDirectory();
+    final file = File('${directory?.path}/data.json');
+    final data = await file.readAsString();
+    final jsonData = jsonDecode(data);
+    final String baseUrl = jsonData['base_url'];
+    return baseUrl;
+  } catch (e) {
+    print(e);
+    return 'Eror';
+  }
+}
+
+Future<void> pingApi(BuildContext context) async {
+  try {
+    var baseUrl = await readBaseUrl();
+    final response = await get(Uri.parse('$baseUrl/'),
+        headers: {'api-key': 'Cokrok-kasir-apikey-098979'});
+
+    if (response.statusCode == 200) {
+      showAlert(context, 'Response: ${response.statusCode}');
+    } else {
+      showAlert(context, 'Response: ${response.statusCode}');
+    }
   } catch (e) {
     showAlert(context, 'Error: $e');
   }
@@ -78,10 +109,16 @@ class _changeApiState extends State<changeApi> {
                 textAlign: TextAlign.start,
                 textAlignVertical: TextAlignVertical.center,
                 textCapitalization: TextCapitalization.none,
+                decoration: const InputDecoration(
+                  hintText: 'Ex: https://example.com',
+                  hintStyle: TextStyle(
+                      fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+                ),
               ),
               ElevatedButton(
                   onPressed: () async {
                     await writeJsonToFile(context, _apiController.text);
+                    _apiController.clear();
                   },
                   child: const Text('Submit Api')),
               ElevatedButton(
@@ -89,6 +126,11 @@ class _changeApiState extends State<changeApi> {
                     await readJsonFromFile(context);
                   },
                   child: const Text('Cek Api')),
+              ElevatedButton(
+                  onPressed: () async {
+                    await pingApi(context);
+                  },
+                  child: const Text('Ping Api')),
               ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pushReplacement(MaterialPageRoute(

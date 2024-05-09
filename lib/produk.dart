@@ -1,3 +1,4 @@
+import 'package:androidcokro/SplashScreen.dart';
 import 'package:androidcokro/credit.dart';
 import 'package:androidcokro/produkKeluarPage.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class _ProdukState extends State<Produk> {
   List<dynamic> filteredProdukList = [];
   TextEditingController searchController = TextEditingController();
   final Connectivity _connectivity = Connectivity();
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -40,7 +42,7 @@ class _ProdukState extends State<Produk> {
     }
   }
 
-   Future<void> checkConnection() async {
+  Future<void> checkConnection() async {
     var connectivityResult = await _connectivity.checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
       showDialog(
@@ -48,12 +50,17 @@ class _ProdukState extends State<Produk> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text("Tidak Ada Koneksi Internet"),
-            content: const Text("Pastikan Anda terhubung ke internet untuk melanjutkan."),
+            content: const Text(
+                "Pastikan Anda terhubung ke internet untuk melanjutkan."),
             actions: <Widget>[
               TextButton(
                 child: const Text('Oke'),
                 onPressed: () {
                   Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const produkKeluarPage()));
                 },
               ),
             ],
@@ -65,8 +72,10 @@ class _ProdukState extends State<Produk> {
     }
   }
 
-
   Future<void> fetchProduk() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       String baseUrl = await readBaseUrl();
       final response = await get(Uri.parse('$baseUrl/get-data/products/all'),
@@ -77,15 +86,49 @@ class _ProdukState extends State<Produk> {
           setState(() {
             produkList = decodedResponse['data'];
             filteredProdukList = produkList;
+            isLoading = false;
           });
         } else {
+          isLoading = false;
+          showDialog(
+              context: context,
+              builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Data Produk Tidak Ditemukan.'),
+                      actions: [
+                        TextButton(
+                            child: const Text('Oke'),
+                            onPressed: () => Navigator.of(context).pop())
+                      ]));
           throw Exception('Data produk tidak ditemukan dalam respons');
         }
       } else {
+        isLoading = false;
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Error'),
+                content: Text(
+                    'Gagal memuat data dari API dengan status code: ${response.statusCode}, Coba lagi dalam 1 menit.'),
+                actions: [
+                  TextButton(
+                    child: const Text('Oke'),
+                    onPressed: () => {
+                      Navigator.of(context).pop(),
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const produkKeluarPage()))
+                    },
+                  ),
+                ],
+              );
+            });
         throw Exception(
             'Gagal memuat data dari API dengan status code: ${response.statusCode}');
       }
     } catch (e) {
+      isLoading = false;
       print('Terjadi kesalahan saat memuat data: $e');
     }
   }
@@ -113,6 +156,7 @@ class _ProdukState extends State<Produk> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(70),
         child: Container(
@@ -133,14 +177,26 @@ class _ProdukState extends State<Produk> {
                   onPressed: () => {Scaffold.of(context).openDrawer()},
                 ),
               ),
-              title: const Text("Produk Keluar"),
+              title: const Text(
+                "Produk",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w400),
+              ),
               trailing: IconButton(
                 icon: const Icon(
                   Icons.exit_to_app_outlined,
                   color: Colors.white,
                   size: 40,
                 ),
-                onPressed: () => {},
+                onPressed: () => {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => const splashScreen()),
+                  )
+                },
               ),
             ),
           )),
@@ -157,14 +213,20 @@ class _ProdukState extends State<Produk> {
                 child: Text(
                   'Cokro4Mart Cashier',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w400),
                 ),
               ),
             ),
             ListTile(
-              title: const Text('Produk Keluar'),
+              title: const Text('Produk Keluar',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 15,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w400)),
               onTap: () {
                 Navigator.pushReplacement(
                   context,
@@ -192,12 +254,16 @@ class _ProdukState extends State<Produk> {
               },
             ),
             ListTile(
-              title: const Text('Produk'),
+              title: const Text('Produk',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 15,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w400)),
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const Produk()),
+                  MaterialPageRoute(builder: (context) => const Produk()),
                 );
               },
             ),
@@ -246,34 +312,38 @@ class _ProdukState extends State<Produk> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                labelText: 'Cari Produk',
-                suffixIcon: Icon(Icons.search),
-              ),
-              onChanged: searchProduct,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: searchController,
+                    decoration: const InputDecoration(
+                      labelText: 'Cari Produk',
+                      labelStyle: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+                      suffixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: searchProduct,
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filteredProdukList.length,
+                    itemBuilder: (context, index) {
+                      var produk = filteredProdukList[index];
+                      return ListTile(
+                        title: Text(
+                            '${produk['kode_brg']} - ${produk['nama_brg']}',style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),),
+                        subtitle: Text(
+                            'Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}',style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: filteredProdukList.length,
-              itemBuilder: (context, index) {
-                var produk = filteredProdukList[index];
-                return ListTile(
-                  title: Text('${produk['kode_brg']} - ${produk['nama_brg']}'),
-                  subtitle: Text(
-                      'Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}'),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

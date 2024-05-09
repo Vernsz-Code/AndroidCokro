@@ -65,7 +65,8 @@ class _LoginPageState extends State<loginPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text("Tidak Ada Koneksi Internet"),
-            content: const Text("Pastikan Anda terhubung ke internet untuk melanjutkan."),
+            content: const Text(
+                "Pastikan Anda terhubung ke internet untuk melanjutkan."),
             actions: <Widget>[
               TextButton(
                 child: const Text('Oke'),
@@ -85,34 +86,42 @@ class _LoginPageState extends State<loginPage> {
   Future<void> loginProcess() async {
     if (userController.text.isEmpty || passController.text.isEmpty) {
       showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Form Kosong"),
-            content: const Text('Tolong isi user atau pass dengan benar!'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Oke"),
-              )
-            ],
-          );
-        });
-    } else if (userController.text == 'api' && passController.text == 'config') {
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Form Kosong"),
+              content: const Text('Tolong isi user atau pass dengan benar!'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Oke"),
+                )
+              ],
+            );
+          });
+    } else if (userController.text == 'api' &&
+        passController.text == 'config') {
+      userController.clear();
+      passController.clear();
       Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => const changeApi(),
       ));
     } else {
       String response = await Login(userController.text, passController.text);
       if (response == "Login berhasil") {
+        userController.clear();
+        passController.clear();
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const produkKeluarPage(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const produkKeluarPage(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               var begin = const Offset(1.0, 0.0);
               var end = Offset.zero;
               var curve = Curves.ease;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
               var offsetAnimation = animation.drive(tween);
               return SlideTransition(
                 position: offsetAnimation,
@@ -124,19 +133,19 @@ class _LoginPageState extends State<loginPage> {
         );
       } else {
         showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Login Gagal"),
-              content: Text(response),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Oke"),
-                )
-              ],
-            );
-          });
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Login Gagal"),
+                content: Text(response),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Oke"),
+                  )
+                ],
+              );
+            });
       }
     }
   }
