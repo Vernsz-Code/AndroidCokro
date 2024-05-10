@@ -1,6 +1,6 @@
 // ignore_for_file: camel_case_types
 
-import 'package:androidcokro/loginPage.dart';
+import 'package:androidcokro/screens/loginPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';

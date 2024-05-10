@@ -1,12 +1,11 @@
-import 'package:androidcokro/SplashScreen.dart';
-import 'package:androidcokro/cariProdukPage.dart';
-import 'package:androidcokro/credit.dart';
-import 'package:androidcokro/produk.dart';
+import 'package:androidcokro/splash/SplashScreen.dart';
+import 'package:androidcokro/screens/cariProdukPage.dart';
+import 'package:androidcokro/credits/credit.dart';
+import 'package:androidcokro/screens/produk.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'dart:convert';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+import 'package:androidcokro/services/ApiConfig.dart';
 
 class produkKeluarPage extends StatefulWidget {
   const produkKeluarPage({super.key});
@@ -15,19 +14,6 @@ class produkKeluarPage extends StatefulWidget {
   State<produkKeluarPage> createState() => _produkKeluarPageState();
 }
 
-Future<String> readBaseUrl() async {
-  try {
-    final directory = await getExternalStorageDirectory();
-    final file = File('${directory?.path}/data.json');
-    final data = await file.readAsString();
-    final jsonData = jsonDecode(data);
-    final String baseUrl = jsonData['base_url'];
-    return baseUrl;
-  } catch (e) {
-    print(e);
-    return 'Eror';
-  }
-}
 
 class _produkKeluarPageState extends State<produkKeluarPage> {
   final TextEditingController _controllerKode = TextEditingController();
@@ -41,7 +27,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
   List<Map<String, dynamic>> tableData = [];
 
   Future<void> fetchData(String kodeBarang) async {
-    var base = await readBaseUrl();
+    var base = await ApiConfig.instance.readBaseUrl();
     var url = '$base/get-data/products/$kodeBarang';
     var response = await get(Uri.parse(url),
         headers: {'api-key': 'Cokrok-kasir-apikey-098979'});
@@ -96,7 +82,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
   }
 
   Future<void> getFaktur() async {
-    var base = await readBaseUrl();
+    var base = await ApiConfig.instance.readBaseUrl();
     var url = '$base/get-data/no_faktur';
     var response = await get(Uri.parse(url),
         headers: {'api-key': 'Cokrok-kasir-apikey-098979'});

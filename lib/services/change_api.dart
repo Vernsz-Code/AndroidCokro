@@ -1,10 +1,11 @@
 import 'dart:convert';
 
-import 'package:androidcokro/loginPage.dart';
+import 'package:androidcokro/screens/loginPage.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart';
+import 'package:androidcokro/services/ApiConfig.dart';
 
 class changeApi extends StatefulWidget {
   const changeApi({super.key});
@@ -62,23 +63,9 @@ Future<void> readJsonFromFile(BuildContext context) async {
   }
 }
 
-Future<String> readBaseUrl() async {
-  try {
-    final directory = await getExternalStorageDirectory();
-    final file = File('${directory?.path}/data.json');
-    final data = await file.readAsString();
-    final jsonData = jsonDecode(data);
-    final String baseUrl = jsonData['base_url'];
-    return baseUrl;
-  } catch (e) {
-    print(e);
-    return 'Eror';
-  }
-}
-
 Future<void> pingApi(BuildContext context) async {
   try {
-    var baseUrl = await readBaseUrl();
+    var baseUrl = await ApiConfig.instance.readBaseUrl();
     final response = await get(Uri.parse('$baseUrl/'),
         headers: {'api-key': 'Cokrok-kasir-apikey-098979'});
 

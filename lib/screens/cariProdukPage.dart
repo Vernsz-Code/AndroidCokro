@@ -1,10 +1,9 @@
-import 'package:androidcokro/produkKeluarPage.dart';
+import 'package:androidcokro/screens/produkKeluarPage.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:androidcokro/services/ApiConfig.dart';
 
 class cariProdukPage extends StatefulWidget {
   final Function(Map<String, dynamic>) tambahKeTabel;
@@ -26,20 +25,6 @@ class _cariProdukPageState extends State<cariProdukPage> {
   void initState() {
     super.initState();
     checkConnection();
-  }
-
-  Future<String> readBaseUrl() async {
-    try {
-      final directory = await getExternalStorageDirectory();
-      final file = File('${directory?.path}/data.json');
-      final data = await file.readAsString();
-      final jsonData = jsonDecode(data);
-      final String baseUrl = jsonData['base_url'];
-      return baseUrl;
-    } catch (e) {
-      print(e);
-      return 'Eror';
-    }
   }
 
   Future<void> checkConnection() async {
@@ -78,7 +63,7 @@ class _cariProdukPageState extends State<cariProdukPage> {
     });
 
     try {
-      String baseUrl = await readBaseUrl();
+      String baseUrl = await ApiConfig.instance.readBaseUrl();
       final response = await get(Uri.parse('$baseUrl/get-data/products/all'),
           headers: {'api-key': 'Cokrok-kasir-apikey-098979'});
       if (response.statusCode == 200) {
