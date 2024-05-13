@@ -1,3 +1,4 @@
+import 'package:androidcokro/model/fakMod.dart';
 import 'package:androidcokro/splash/SplashScreen.dart';
 import 'package:androidcokro/screens/cariProdukPage.dart';
 import 'package:androidcokro/credits/credit.dart';
@@ -6,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'dart:convert';
 import 'package:androidcokro/services/ApiConfig.dart';
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:intl/intl.dart';
 
 class produkKeluarPage extends StatefulWidget {
   const produkKeluarPage({super.key});
@@ -14,9 +18,10 @@ class produkKeluarPage extends StatefulWidget {
   State<produkKeluarPage> createState() => _produkKeluarPageState();
 }
 
-
 class _produkKeluarPageState extends State<produkKeluarPage> {
   final TextEditingController _controllerKode = TextEditingController();
+  late NetworkPrinter printer;
+  NumberFormat rupiahFormat = NumberFormat.decimalPattern('id');
 
   int kembalian = 0;
   int totalbayar = 0;
@@ -69,13 +74,12 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
     } else {
       showDialog(
           context: context,
-          builder: (BuildContext context) => AlertDialog(
-                  title: const Text('Gagal mengambil data.'),
-                  actions: [
-                    TextButton(
-                        child: const Text('Oke'),
-                        onPressed: () => Navigator.of(context).pop())
-                  ]));
+          builder: (BuildContext context) =>
+              AlertDialog(title: const Text('Gagal mengambil data.'), actions: [
+                TextButton(
+                    child: const Text('Oke'),
+                    onPressed: () => Navigator.of(context).pop())
+              ]));
       throw Exception(
           'Failed to load data with status code: ${response.statusCode}');
     }
@@ -109,13 +113,12 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
     } else {
       showDialog(
           context: context,
-          builder: (BuildContext context) => AlertDialog(
-                  title: const Text('Gagal mengambil data.'),
-                  actions: [
-                    TextButton(
-                        child: const Text('Oke'),
-                        onPressed: () => Navigator.of(context).pop())
-                  ]));
+          builder: (BuildContext context) =>
+              AlertDialog(title: const Text('Gagal mengambil data.'), actions: [
+                TextButton(
+                    child: const Text('Oke'),
+                    onPressed: () => Navigator.of(context).pop())
+              ]));
       throw Exception(
           'Failed to load data with status code: ${response.statusCode}');
     }
@@ -124,7 +127,6 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
   void editQuantity(Map<String, dynamic> item) {
     TextEditingController quantityController =
         TextEditingController(text: item['quantity'].toString());
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -150,7 +152,8 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                     showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                                title: const Text('Quantity tidak boleh kosong'),
+                                title:
+                                    const Text('Quantity tidak boleh kosong'),
                                 actions: [
                                   TextButton(
                                       child: const Text('Oke'),
@@ -161,6 +164,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                   int index = tableData.indexOf(item);
                   tableData[index]['quantity'] =
                       int.parse(quantityController.text);
+                  Kembalian(totalbayar, getTotalHarga());
                 });
                 Navigator.of(context).pop();
               },
@@ -223,6 +227,155 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
     });
   }
 
+  Future<void> printReceipt() async {
+    // int nomorFaktur = faktur;
+    String totalHargaRupiah = rupiahFormat.format(getTotalHarga());
+
+    List<FakturItem> items = tableData
+        .map((item) => FakturItem(
+              description: item['nama_brg'],
+              price: item['jual'],
+              quantity: item['quantity'],
+            ))
+        .toList();
+
+    final profile = await CapabilityProfile.load();
+    final printer = NetworkPrinter(PaperSize.mm80, profile);
+
+    final result = await printer.connect('192.168.232.2', port: 9100);
+
+    if (result == PosPrintResult.success) {
+      try {
+        // Muat gambar BMP dari assets
+        // final ByteData data = await rootBundle.load('images/tech.bmp');
+        // final buffer = data.buffer;
+        // final imageBytes =
+        //     buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        // final image = img.decodeBmp(imageBytes);
+
+        // // Pastikan gambar tidak null
+        // if (image != null) {
+        //   int newWidth = 150; // Lebar baru dalam piksel
+        //   int newHeight = 150; // Tinggi baru dalam piksel
+        //   img.Image resizedImage =
+        //       img.copyResize(image, width: newWidth, height: newHeight);
+
+        //   // Print gambar yang telah diubah ukurannya
+        //   printer.image(resizedImage);
+        // }
+
+        printer.text('Cokro4Mart',
+            styles: const PosStyles(
+              align: PosAlign.center,
+              height: PosTextSize.size2,
+              width: PosTextSize.size2,
+            ),
+            linesAfter: 1);
+
+        printer.text('Jl. Hos Cokroaminoto No 102,',
+            styles: PosStyles(align: PosAlign.center));
+        printer.text('Enggal, Bandar Lampung',
+            styles: PosStyles(align: PosAlign.center), linesAfter: 1);
+
+        printer.hr();
+
+        printer.row([
+          PosColumn(text: 'Jumlah', width: 2),
+          PosColumn(text: 'Nama Barang', width: 5),
+          PosColumn(
+              text: 'Price',
+              width: 2,
+              styles: PosStyles(align: PosAlign.right)),
+          PosColumn(
+              text: 'Total',
+              width: 3,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+
+        for (FakturItem item in items) {
+          printer.row([
+            PosColumn(text: item.quantity.toString(), width: 2),
+            PosColumn(text: item.description, width: 4),
+            PosColumn(
+                text: rupiahFormat.format(item.price),
+                width: 3,
+                styles: PosStyles(align: PosAlign.right)),
+            PosColumn(
+                text: rupiahFormat.format(item.price * item.quantity),
+                width: 3,
+                styles: PosStyles(align: PosAlign.right)),
+          ]);
+        }
+
+        printer.hr();
+
+        printer.row([
+          PosColumn(
+              text: 'TOTAL',
+              width: 4,
+              styles: PosStyles(
+                height: PosTextSize.size2,
+                width: PosTextSize.size2,
+              )),
+          PosColumn(
+              text: '\ ${totalHargaRupiah}',
+              width: 8,
+              styles: PosStyles(
+                align: PosAlign.right,
+                height: PosTextSize.size2,
+                width: PosTextSize.size2,
+              )),
+        ]);
+
+        printer.hr(ch: '=', linesAfter: 1);
+
+        printer.row([
+          PosColumn(
+              text: 'Tunai :',
+              width: 8,
+              styles:
+                  PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
+          PosColumn(
+              text: '\ ${rupiahFormat.format(totalbayar)}',
+              width: 4,
+              styles:
+                  PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
+        ]);
+        printer.row([
+          PosColumn(
+              text: 'Kembalian :',
+              width: 8,
+              styles:
+                  PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
+          PosColumn(
+              text: '\ ${rupiahFormat.format(kembalian)}',
+              width: 4,
+              styles:
+                  PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
+        ]);
+
+        printer.feed(2);
+        printer.text('TERIMAKASIH TELAH BERBELANJA DI COKRO4MART',
+            styles: PosStyles(align: PosAlign.center, bold: true));
+
+        final now = DateTime.now();
+        final formatter = DateFormat('MM/dd/yyyy H:m');
+        final String timestamp = formatter.format(now);
+        printer.text(timestamp,
+            styles: PosStyles(align: PosAlign.center), linesAfter: 2);
+
+        printer.cut();
+      } finally {
+        printer.disconnect();
+      }
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => produkKeluarPage()),
+      );
+    } else {
+      print('Failed to connect to printer: $result');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -231,6 +384,9 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
@@ -268,7 +424,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                 onPressed: () => {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (context) => const splashScreen()),
+                        builder: (context) => const splashScreen()),
                   )
                 },
               ),
@@ -396,7 +552,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
             Expanded(
                 flex: 1,
                 child: Container(
-                  padding: const EdgeInsets.only(left: 30, right: 30),
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                   child: Row(
                     children: [
                       Expanded(
@@ -404,10 +560,10 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                         padding: const EdgeInsets.all(5),
                         child: Text(
                           'No Faktur : $faktur',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w800,
-                              fontSize: 20),
+                              fontSize: screenHeight * 0.020),
                         ),
                       )),
                       Expanded(flex: 4, child: Container()),
@@ -415,20 +571,102 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                           flex: 1,
                           child: SizedBox(
                             height: 30,
-                            width: 10,
+                            width: screenWidth * 0.1,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                   backgroundColor:
                                       const Color.fromARGB(255, 22, 219, 101),
                                   padding: const EdgeInsets.only(left: 3)),
-                              child: const Text("Cetak",
+                              child: Text("Cetak",
                                   textAlign: TextAlign.right,
                                   style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 15,
+                                      fontSize: screenHeight * 0.018,
                                       fontFamily: 'Poppins',
                                       fontWeight: FontWeight.w400)),
-                              onPressed: () => {},
+                              onPressed: () {
+                                if (totalbayar == 0) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Notice'),
+                                        content: Text(
+                                            'Anda belum menginputkan total bayar'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: Text('Okay'),
+                                            onPressed: () =>
+                                                {Navigator.of(context).pop()},
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                } else if (totalbayar < getTotalHarga()) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Notice'),
+                                        content:
+                                            Text('Total bayar tidak mencukupi'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: Text('Okay'),
+                                            onPressed: () =>
+                                                {Navigator.of(context).pop()},
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                } else if (tableData.isEmpty) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Notice'),
+                                        content: Text(
+                                            'Belum ada produk yang di pilih'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: Text('Okay'),
+                                            onPressed: () =>
+                                                {Navigator.of(context).pop()},
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                } else {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Konfirmasi'),
+                                        content: Text(
+                                            'Apakah Anda yakin ingin mencetak faktur ini?'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: Text('Batal'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: Text('Cetak'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                              printReceipt();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                              },
                             ),
                           )),
                     ],
@@ -437,62 +675,62 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
             Expanded(
                 flex: 1,
                 child: Container(
-                  padding: const EdgeInsets.only(left: 30, right: 30),
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           children: [
                             Text(
-                              'Total Produk : ${getTotalProduk()}',
-                              style: const TextStyle(
+                              'Total Produk : ${rupiahFormat.format(getTotalProduk())}',
+                              style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 20),
+                                  fontSize: screenHeight * 0.020),
                             )
                           ],
                         ),
                         Column(
                           children: [
                             Text(
-                              'Total Harga : ${getTotalHarga()}',
-                              style: const TextStyle(
+                              'Total Harga : ${rupiahFormat.format(getTotalHarga())}',
+                              style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 20),
+                                  fontSize: screenHeight * 0.020),
                             )
                           ],
                         ),
-                        const Column(
+                        Column(
                           children: [
                             Text(
                               'Total Diskon : 0',
                               style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 20),
+                                  fontSize: screenHeight * 0.020),
                             )
                           ],
                         ),
                         Column(
                           children: [
                             Text(
-                              'Total Bayar : $totalbayar',
-                              style: const TextStyle(
+                              'Total Bayar : ${rupiahFormat.format(totalbayar)}',
+                              style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 20),
+                                  fontSize: screenHeight * 0.020),
                             )
                           ],
                         ),
                         Column(
                           children: [
                             Text(
-                              'Kembalian : $kembalian',
-                              style: const TextStyle(
+                              'Kembalian : ${rupiahFormat.format(kembalian)}',
+                              style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 20),
+                                  fontSize: screenHeight * 0.020),
                             )
                           ],
                         )
@@ -500,7 +738,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                 )),
             Expanded(
                 child: Container(
-              padding: const EdgeInsets.only(left: 30, right: 30),
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -515,8 +753,8 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                         textAlignVertical: TextAlignVertical.center,
                         decoration: InputDecoration(
                           hintText: "Kode Barang...",
-                          hintStyle: const TextStyle(
-                              fontSize: 15,
+                          hintStyle: TextStyle(
+                              fontSize: screenHeight * 0.018,
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w400),
                           border: OutlineInputBorder(
@@ -544,10 +782,11 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                             showCursor: true,
                             textAlign: TextAlign.start,
                             textAlignVertical: TextAlignVertical.center,
+                            keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                                 hintText: "Bayar Rp.",
-                                hintStyle: const TextStyle(
-                                    fontSize: 15,
+                                hintStyle: TextStyle(
+                                    fontSize: screenHeight * 0.018,
                                     fontFamily: 'Poppins',
                                     fontWeight: FontWeight.w400),
                                 border: OutlineInputBorder(
@@ -558,15 +797,6 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                               updateTotalBayar(int.tryParse(value) ?? 0);
                             },
                           )),
-                      Checkbox(
-                        value: kredit,
-                        onChanged: (bool? newValue) {
-                          setState(() {
-                            kredit = newValue ?? false;
-                          });
-                        },
-                      ),
-                      const Text("Credit")
                     ],
                   )
                 ],
@@ -576,37 +806,47 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
               flex: 6,
               child: SingleChildScrollView(
                 child: DataTable(
-                  columnSpacing: 160,
-                  columns: const [
+                  columnSpacing: screenWidth * 0.08,
+                  columns: [
                     DataColumn(
                         label: Text(
                       'Kode Barang',
                       style: TextStyle(
-                          fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w400,
+                          fontSize: screenHeight * 0.017),
                     )),
                     DataColumn(
                         label: Text(
                       'Nama Barang',
                       style: TextStyle(
-                          fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w400,
+                          fontSize: screenHeight * 0.017),
                     )),
                     DataColumn(
                         label: Text(
                       'Quantity',
                       style: TextStyle(
-                          fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w400,
+                          fontSize: screenHeight * 0.017),
                     )),
                     DataColumn(
                         label: Text(
                       'Harga (pcs)',
                       style: TextStyle(
-                          fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w400,
+                          fontSize: screenHeight * 0.017),
                     )),
                     DataColumn(
                         label: Text(
                       'Aksi',
                       style: TextStyle(
-                          fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w400,
+                          fontSize: screenHeight * 0.017),
                     )),
                   ],
                   rows: tableData
@@ -614,30 +854,34 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                             cells: [
                               DataCell(Text(
                                 item['kode_brg'],
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400),
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: screenHeight * 0.017),
                               )),
                               DataCell(Text(
                                 item['nama_brg'],
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400),
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: screenHeight * 0.017),
                               )),
                               DataCell(
                                   Text(
                                     item['quantity'].toString(),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w400),
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: screenHeight * 0.017),
                                   ),
                                   onTap: () => editQuantity(
                                       item)), // Menampilkan quantity
                               DataCell(Text(
                                 item['jual'].toString(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400),
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: screenHeight * 0.017),
                               )),
                               DataCell(const Icon(Icons.delete),
                                   onTap: () => hapusItem(item)),
@@ -662,7 +906,8 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                           },
                           transitionsBuilder:
                               (context, animation, secondaryAnimation, child) {
-                            var begin = const Offset(1.0, 0.0);
+                            var begin = const Offset(
+                                0.0, 1.0); // Ubah dari bawah ke atas
                             var end = Offset.zero;
                             var curve = Curves.ease;
                             var tween = Tween(begin: begin, end: end)
@@ -679,14 +924,15 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.only(left: 30.0, right: 30.0),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.05),
                         backgroundColor:
                             const Color.fromARGB(255, 22, 219, 101)),
-                    child: const Text(
+                    child: Text(
                       'Cari Barang',
                       style: TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: screenHeight * 0.018,
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.w400),
                     )),

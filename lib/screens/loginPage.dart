@@ -17,7 +17,6 @@ class loginPage extends StatefulWidget {
 TextEditingController userController = TextEditingController();
 TextEditingController passController = TextEditingController();
 
-
 Login(String user, String pass) async {
   try {
     String baseUrl = await ApiConfig.instance.readBaseUrl();
@@ -42,6 +41,7 @@ Login(String user, String pass) async {
 class _LoginPageState extends State<loginPage> {
   bool _obscureText = true;
   final Connectivity _connectivity = Connectivity();
+  bool _isLoading = false;
 
   Future<void> checkConnection() async {
     var connectivityResult = await _connectivity.checkConnectivity();
@@ -93,6 +93,9 @@ class _LoginPageState extends State<loginPage> {
         builder: (context) => const changeApi(),
       ));
     } else {
+      setState(() {
+        _isLoading = true;
+      });
       String response = await Login(userController.text, passController.text);
       if (response == "Login berhasil") {
         userController.clear();
@@ -117,7 +120,13 @@ class _LoginPageState extends State<loginPage> {
             transitionDuration: const Duration(milliseconds: 500),
           ),
         );
+        setState(() {
+          _isLoading = false;
+        });
       } else {
+        setState(() {
+          _isLoading = false;
+        });
         showDialog(
             context: context,
             builder: (BuildContext context) {
@@ -138,185 +147,197 @@ class _LoginPageState extends State<loginPage> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-        body: SingleChildScrollView(
-      child: Center(
+      body: _isLoading ? const Center(child: CircularProgressIndicator()) :
+      SingleChildScrollView(
+        child: Center(
           child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-                top: 50.0,
-                left: 10.0,
-                right: 10.0), // Memberikan jarak dari bagian atas
-            child: Row(
-              // Mengatur lebar minimum
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Image(
-                  image: AssetImage("images/200.png"),
-                  width: 200.0,
-                  height: 200.0,
-                  alignment: Alignment.topLeft,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                  top: screenHeight * 0.05,
+                  left: 10.0,
+                  right: 10.0,
                 ),
-                Expanded(
-                  child: Container(
-                    height: 650.0,
-                    width: 700.0,
-                    decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 56, 38, 150),
-                        borderRadius: BorderRadius.circular(15)),
-                    child: Center(
-                      child: Column(children: [
-                        const Text(
-                          'LOGIN',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 100.0,
-                            fontFamily: 'rubik',
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image(
+                      image: AssetImage("images/200.png"),
+                      width: screenWidth * 0.2,
+                      height: screenHeight * 0.2,
+                      alignment: Alignment.topLeft,
+                    ),
+                    Expanded(
+                      child: Container(
+                        height: screenHeight * 0.8,
+                        decoration: BoxDecoration(
+                          color: Color.fromARGB(255, 56, 38, 150),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Center(
+                          child: SingleChildScrollView(
+                            child: Column(children: [
+                              Text(
+                                'LOGIN',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: screenWidth * 0.1,
+                                  fontFamily: 'rubik',
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(height: screenHeight * 0.08),
+                                  SizedBox(
+                                    width: screenWidth * 0.5,
+                                    child: TextField(
+                                      controller: userController,
+                                      autocorrect: false,
+                                      cursorColor: Colors.blue,
+                                      showCursor: true,
+                                      textAlign: TextAlign.start,
+                                      textAlignVertical:
+                                          TextAlignVertical.center,
+                                      textCapitalization:
+                                          TextCapitalization.none,
+                                      style: TextStyle(
+                                        color: Colors.blue,
+                                        fontSize: 20.0,
+                                      ),
+                                      decoration: InputDecoration(
+                                        icon: Icon(
+                                          Icons.person,
+                                          size: 35,
+                                          color: Colors.blue,
+                                        ),
+                                        hintText: 'Masukkan username',
+                                        hintStyle: TextStyle(
+                                          color: Colors.blue,
+                                        ),
+                                        border: OutlineInputBorder(),
+                                        labelText: "Username",
+                                        labelStyle: TextStyle(
+                                            color: Colors.blue, fontSize: 30.0),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: screenHeight * 0.05),
+                                  SizedBox(
+                                    width: screenWidth * 0.5,
+                                    child: TextField(
+                                      controller: passController,
+                                      autocorrect: false,
+                                      cursorColor: Colors.blue,
+                                      showCursor: true,
+                                      textAlign: TextAlign.start,
+                                      textAlignVertical:
+                                          TextAlignVertical.center,
+                                      textCapitalization:
+                                          TextCapitalization.none,
+                                      obscureText: _obscureText,
+                                      style: TextStyle(
+                                        color: Colors.blue,
+                                        fontSize: 20.0,
+                                      ),
+                                      decoration: InputDecoration(
+                                        icon: Icon(
+                                          Icons.lock,
+                                          size: 35,
+                                          color: Colors.blue,
+                                        ),
+                                        suffix: IconButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                _obscureText = !_obscureText;
+                                              });
+                                            },
+                                            icon: _obscureText
+                                                ? Icon(
+                                                    Icons.visibility,
+                                                    size: 25,
+                                                    color: Colors.blue,
+                                                  )
+                                                : Icon(
+                                                    Icons.visibility_off,
+                                                    size: 25,
+                                                    color: Colors.blue,
+                                                  )),
+                                        hintText: 'Masukkan password',
+                                        hintStyle: TextStyle(
+                                          color: Colors.blue,
+                                        ),
+                                        border: OutlineInputBorder(),
+                                        labelText: "Password",
+                                        labelStyle: TextStyle(
+                                            color: Colors.blue, fontSize: 30.0),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: screenHeight * 0.05),
+                                  SizedBox(
+                                    width: screenWidth * 0.5,
+                                    child: Center(
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          await checkConnection();
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.blue,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 10,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          textStyle: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Image(
+                                              image:
+                                                  AssetImage("images/k4.png"),
+                                              width: 70.0,
+                                              height: 70.0,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              )
+                            ]),
                           ),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 80.0),
-                            SizedBox(
-                              width: 500, // Lebar column
-                              child: TextField(
-                                controller: userController,
-                                autocorrect: false,
-                                cursorColor: Colors.blue,
-                                showCursor: true,
-                                textAlign: TextAlign.start,
-                                textAlignVertical: TextAlignVertical.center,
-                                textCapitalization: TextCapitalization.none,
-                                style: const TextStyle(
-                                  color: Colors.blue,
-                                  fontSize: 20.0,
-                                ),
-                                decoration: const InputDecoration(
-                                  icon: Icon(
-                                    Icons.person,
-                                    size: 35,
-                                    color: Colors.blue,
-                                  ),
-                                  hintText: 'Masukkan username',
-                                  hintStyle: TextStyle(
-                                    color: Colors.blue,
-                                  ),
-                                  border: OutlineInputBorder(),
-                                  labelText: "Username",
-                                  labelStyle: TextStyle(
-                                      color: Colors.blue, fontSize: 30.0),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 50.0),
-                            SizedBox(
-                              width: 500, // Lebar column
-                              child: TextField(
-                                controller: passController,
-                                autocorrect: false,
-                                cursorColor: Colors.blue,
-                                showCursor: true,
-                                textAlign: TextAlign.start,
-                                textAlignVertical: TextAlignVertical.center,
-                                textCapitalization: TextCapitalization.none,
-                                obscureText: _obscureText,
-                                style: const TextStyle(
-                                  color: Colors.blue,
-                                  fontSize: 20.0,
-                                ),
-                                decoration: InputDecoration(
-                                  icon: const Icon(
-                                    Icons.lock,
-                                    size: 35,
-                                    color: Colors.blue,
-                                  ),
-                                  suffix: IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          _obscureText =
-                                              !_obscureText; // Memperbarui status teks tersembunyi
-                                        });
-                                      },
-                                      icon: _obscureText
-                                          ? const Icon(
-                                              Icons.visibility,
-                                              size: 25,
-                                              color: Colors.blue,
-                                            )
-                                          : const Icon(
-                                              Icons.visibility_off,
-                                              size: 25,
-                                              color: Colors.blue,
-                                            )),
-                                  hintText: 'Masukkan password',
-                                  hintStyle: const TextStyle(
-                                    color: Colors.blue,
-                                  ),
-                                  border: const OutlineInputBorder(),
-                                  labelText: "Password",
-                                  labelStyle: const TextStyle(
-                                      color: Colors.blue, fontSize: 30.0),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 55.0),
-                            SizedBox(
-                              width: 500,
-                              child: Center(
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    await checkConnection();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 10,
-                                    ), // Button padding
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          10), // Button border radius
-                                    ),
-                                    textStyle: const TextStyle(
-                                      fontSize: 16, // Text size
-                                      fontWeight:
-                                          FontWeight.bold, // Text weight
-                                    ),
-                                  ),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image(
-                                        image: AssetImage("images/k4.png"),
-                                        width: 70.0,
-                                        height: 70.0,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            )
-                          ],
-                        )
-                      ]),
+                      ),
                     ),
-                  ),
+                    Image(
+                      image: AssetImage("images/smk.png"),
+                      width: screenWidth * 0.2,
+                      height: screenHeight * 0.2,
+                      alignment: Alignment.topRight,
+                    )
+                  ],
                 ),
-                const Image(
-                  image: AssetImage("images/smk.png"),
-                  width: 200.0,
-                  height: 200.0,
-                  alignment: Alignment.topRight,
-                )
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      )),
-    ));
+        ),
+      ),
+    );
   }
 }
