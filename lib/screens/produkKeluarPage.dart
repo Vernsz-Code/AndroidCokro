@@ -102,10 +102,18 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
             context: context,
             builder: (BuildContext context) => AlertDialog(
                     title: const Text('Gagal mengambil data.'),
+                    content: Text(
+                        'Gagal mendapatkan faktur, Status Code: ${response.statusCode}'),
                     actions: [
                       TextButton(
                           child: const Text('Oke'),
-                          onPressed: () => Navigator.of(context).pop())
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => produkKeluarPage()));
+                          })
                     ]));
         throw Exception(
             'Failed to load data with status code: ${response.statusCode}');
@@ -113,12 +121,21 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
     } else {
       showDialog(
           context: context,
-          builder: (BuildContext context) =>
-              AlertDialog(title: const Text('Gagal mengambil data.'), actions: [
-                TextButton(
-                    child: const Text('Oke'),
-                    onPressed: () => Navigator.of(context).pop())
-              ]));
+          builder: (BuildContext context) => AlertDialog(
+                  title: const Text('Gagal mengambil data.'),
+                  content: Text(
+                      'Gagal mendapatkan faktur, Status Code: ${response.statusCode}'),
+                  actions: [
+                    TextButton(
+                        child: const Text('Oke'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => produkKeluarPage()));
+                        })
+                  ]));
       throw Exception(
           'Failed to load data with status code: ${response.statusCode}');
     }
@@ -233,10 +250,9 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
 
     List<FakturItem> items = tableData
         .map((item) => FakturItem(
-              description: item['nama_brg'],
-              price: item['jual'],
-              quantity: item['quantity'],
-            ))
+            description: item['nama_brg'],
+            price: item['jual'],
+            quantity: item['quantity']))
         .toList();
 
     final profile = await CapabilityProfile.load();
@@ -368,11 +384,120 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
       } finally {
         printer.disconnect();
       }
+    } else {
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                  title: Text('Error'),
+                  content: Text('Failed to connect to printer: $result'),
+                  actions: [
+                    TextButton(
+                        child: Text('Oke'),
+                        onPressed: () => Navigator.of(context).pop())
+                  ]));
+    }
+  }
+
+  Future<void> updateStok() async {
+    var base = await ApiConfig.instance.readBaseUrl();
+    var url = '$base/update-data/product';
+
+    // Mengumpulkan data yang akan dikirim
+    List<Map<String, dynamic>> updatedData = tableData.map((item) {
+      return {
+        'kode': item['kode_brg'],
+        'qty': item[
+            'quantity'], // Misalnya, field yang ingin di-update adalah quantity
+        // Tambahkan field lain jika diperlukan
+      };
+    }).toList();
+
+    // Mengubah data ke JSON
+    String jsonData = jsonEncode(updatedData);
+
+    // Mengirim request PUT
+    var response = await put(Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': 'Cokrok-kasir-apikey-098979'
+        },
+        body: jsonData);
+
+    var jsonResponse = json.decode(response.body);
+    if (response.statusCode == 200 &&
+        jsonResponse['data'][0]['success'] == true) {
+      //kasi if lagi, buat yang json response
+      print("Data berhasil diupdate");
+      tambahTransaksi();
+    } else {
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                  title: Text('Error'),
+                  content: Text(
+                      '${jsonResponse['data'][0]['message']} , Status Code: ${response.statusCode}'),
+                  actions: [
+                    TextButton(
+                        child: Text('Oke'),
+                        onPressed: () => Navigator.of(context).pop())
+                  ]));
+    }
+  }
+
+  Future<void> tambahTransaksi() async {
+    var base = await ApiConfig.instance.readBaseUrl();
+    var url = '$base/set-data/transaksi_out';
+
+    // Mengumpulkan data yang akan dikirim
+    List<Map<String, dynamic>> tambahTransaksi = tableData.map((item) {
+      return {
+        'no_faktur': faktur,
+        'kode': item['kode_brg'],
+        'nama': item['nama_brg'],
+        'qty': item['quantity'],
+        'harga': item['jual'],
+        'subtotal': item['jual'] * item['quantity'],
+        'mark_up': item['mark_up'],
+        'laba': item['laba'],
+        'payment': 'tunai',
+        'Tunai': totalbayar,
+        'status': 'Lunas',
+        'retur': 0,
+      };
+    }).toList();
+
+    // Mengubah data ke JSON
+    String jsonData = jsonEncode(tambahTransaksi);
+
+    // Mengirim request PUT
+    var response = await post(Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': 'Cokrok-kasir-apikey-098979'
+        },
+        body: jsonData);
+
+    var jsonResponse = json.decode(response.body);
+    if (response.statusCode == 200 &&
+        jsonResponse['data'][0]['success'] == true) {
+      //kasi if lagi, buat yang json response
+      print("Data berhasil di tambah");
+      printReceipt();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => produkKeluarPage()),
       );
     } else {
-      print('Failed to connect to printer: $result');
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                  title: Text('Error'),
+                  content: Text(
+                      '${jsonResponse['data'][0]['message']} , Status Code: ${response.statusCode}'),
+                  actions: [
+                    TextButton(
+                        child: Text('Oke'),
+                        onPressed: () => Navigator.of(context).pop())
+                  ]));
     }
   }
 
@@ -658,7 +783,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                                             child: Text('Cetak'),
                                             onPressed: () {
                                               Navigator.of(context).pop();
-                                              printReceipt();
+                                              updateStok();
                                             },
                                           ),
                                         ],

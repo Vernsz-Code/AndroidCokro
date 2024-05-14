@@ -20,8 +20,9 @@ class FakturItem {
   final int price;
   final int quantity;
 
-  FakturItem(
-      {required this.description, required this.price, required this.quantity});
-
-  int get total => price * quantity;
+  FakturItem({
+    required this.description,
+    required this.price,
+    required this.quantity,
+  });
 }
