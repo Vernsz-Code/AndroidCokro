@@ -20,6 +20,7 @@ class _ProdukState extends State<Produk> {
   TextEditingController searchController = TextEditingController();
   final Connectivity _connectivity = Connectivity();
   bool isLoading = false;
+  String dropdownValue = 'Stok Terbanyak';
 
   @override
   void initState() {
@@ -138,6 +139,37 @@ class _ProdukState extends State<Produk> {
     }
   }
 
+  void applyFilter() {
+    List<dynamic> tempProdukList =
+        List<dynamic>.from(produkList); // Buat salinan dari produkList asli
+
+    switch (dropdownValue) {
+      case 'Stok Terbanyak':
+        tempProdukList
+            .sort((a, b) => b['stok_akhir'].compareTo(a['stok_akhir']));
+        break;
+      case 'Stok Terdikit':
+        tempProdukList
+            .sort((a, b) => a['stok_akhir'].compareTo(b['stok_akhir']));
+        break;
+      case 'A-Z':
+        tempProdukList.sort((a, b) => a['nama_brg'].compareTo(b['nama_brg']));
+        break;
+      case 'Z-A':
+        tempProdukList.sort((a, b) => b['nama_brg'].compareTo(a['nama_brg']));
+        break;
+      case 'Stok Kosong':
+        tempProdukList =
+            tempProdukList.where((produk) => produk['stok_akhir'] < 0).toList();
+        break;
+    }
+
+    setState(() {
+      filteredProdukList =
+          tempProdukList; // Gunakan tempProdukList yang sudah difilter
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,7 +211,7 @@ class _ProdukState extends State<Produk> {
                 onPressed: () => {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (context) => const splashScreen()),
+                        builder: (context) => const splashScreen()),
                   )
                 },
               ),
@@ -286,8 +318,8 @@ class _ProdukState extends State<Produk> {
                     child: const Text(
                       'Credit',
                       style: TextStyle(
-                        color: Color.fromARGB(255, 226, 225, 225),
-                        fontSize: 20.0,
+                        color: Color.fromARGB(255, 240, 240, 240),
+                        fontSize: 15.0,
                       ),
                     ),
                   ),
@@ -298,32 +330,101 @@ class _ProdukState extends State<Produk> {
         ),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  CircularProgressIndicator(),
+                  SizedBox(height: 10),
+                  Text('Memuat...')
+                ],
+              ),
+            )
           : Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: searchController,
-                    decoration: const InputDecoration(
-                      labelText: 'Cari Produk',
-                      labelStyle: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),
-                      suffixIcon: Icon(Icons.search),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 2,
+                      child: TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Cari Produk',
+                          suffixIcon: Icon(Icons.search),
+                        ),
+                        onChanged: searchProduct,
+                      ),
                     ),
-                    onChanged: searchProduct,
-                  ),
+                    Expanded(
+                      flex: 1,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: dropdownValue,
+                          isExpanded: true,
+                          icon: const Icon(Icons.arrow_drop_down),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              dropdownValue = newValue!;
+                              applyFilter();
+                            });
+                          },
+                          items: <String>[
+                            'Stok Terbanyak',
+                            'Stok Terdikit',
+                            'A-Z',
+                            'Z-A',
+                            'Stok Kosong'
+                          ].map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 Expanded(
                   child: ListView.builder(
                     itemCount: filteredProdukList.length,
                     itemBuilder: (context, index) {
                       var produk = filteredProdukList[index];
-                      return ListTile(
-                        title: Text(
-                            '${produk['kode_brg']} - ${produk['nama_brg']}',style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),),
-                        subtitle: Text(
-                            'Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}',style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),),
-                      );
+                      if (produk['stok_akhir'] > 0) {
+                        return ListTile(
+                          title: Text(
+                            '${produk['kode_brg']} - ${produk['nama_brg']}',
+                            style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400),
+                          ),
+                          subtitle: Text(
+                            'Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}',
+                            style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400),
+                          ),
+                        );
+                      } else {
+                        return ListTile(
+                          title: Text(
+                            '${produk['kode_brg']} - ${produk['nama_brg']}',
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400,
+                                decoration: TextDecoration.lineThrough,
+                                decorationColor: Colors.red,
+                                decorationThickness: 2,
+                                color: Colors.grey.shade600),
+                          ),
+                          subtitle: Text(
+                            'Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}',
+                            style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),

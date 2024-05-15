@@ -139,15 +139,42 @@ class _cariProdukPageState extends State<cariProdukPage> {
     }
   }
 
+  void notice(BuildContext context, String msg) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+                title: const Text('Notice!'),
+                content: Text(msg),
+                actions: [
+                  TextButton(
+                      child: const Text('Oke'),
+                      onPressed: () => Navigator.of(context).pop())
+                ]));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Cari Produk', style: TextStyle(color: Colors.black, fontSize: 20, fontFamily: 'Poppins', fontWeight: FontWeight.w400)),
+        title: const Text('Cari Produk',
+            style: TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w400)),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  CircularProgressIndicator(),
+                  SizedBox(height: 10),
+                  Text('Memuat...')
+                ],
+              ),
+            )
           : Column(
               children: [
                 Padding(
@@ -156,7 +183,8 @@ class _cariProdukPageState extends State<cariProdukPage> {
                     controller: searchController,
                     decoration: const InputDecoration(
                       labelText: 'Cari Produk',
-                      labelStyle: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+                      labelStyle: TextStyle(
+                          fontFamily: 'Poppins', fontWeight: FontWeight.w400),
                       suffixIcon: Icon(Icons.search),
                     ),
                     onChanged: searchProduct,
@@ -167,16 +195,69 @@ class _cariProdukPageState extends State<cariProdukPage> {
                     itemCount: filteredProdukList.length,
                     itemBuilder: (context, index) {
                       var produk = filteredProdukList[index];
-                      return ListTile(
-                          title: Text(
-                              '${produk['kode_brg']} - ${produk['nama_brg']}',style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),),
-                          subtitle: Text(
-                              'Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}',style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),),
-                          onTap: () {
-                            widget.tambahKeTabel(produk);
-                            Navigator.pop(
-                                context); // Kembali ke halaman sebelumnya
-                          });
+                      if (produk['stok_akhir'] > 0) {
+                        return ListTile(
+                            title: Text(
+                              '${produk['kode_brg']} - ${produk['nama_brg']}',
+                              style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w400),
+                            ),
+                            subtitle: Text(
+                              'Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}',
+                              style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w400),
+                            ),
+                            onTap: () {
+                              bool result = widget.tambahKeTabel(produk);
+                              if (!result) {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Stok Tidak Mencukupi'),
+                                      content: Text(
+                                          'Stok produk tidak mencukupi. Stok : ${produk['stok_akhir']}'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child: const Text('Oke'),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              } else {
+                                Navigator.pop(
+                                    context); // Kembali ke halaman sebelumnya jika berhasil
+                              }
+                            });
+                      } else {
+                        return ListTile(
+                            title: Text(
+                              '${produk['kode_brg']} - ${produk['nama_brg']}',
+                              style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w400,
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationColor: Colors.red,
+                                  decorationThickness: 2,
+                                  color: Colors.grey.shade600),
+                            ),
+                            subtitle: Text(
+                              'Harga: ${produk['jual'].toString()} - Stok: ${produk['stok_akhir'].toString()}',
+                              style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w400),
+                            ),
+                            onTap: () {
+                              notice(context,
+                                  'Stok produk sudah habis. Mohon restock dahulu!');
+                            });
+                      }
                     },
                   ),
                 ),

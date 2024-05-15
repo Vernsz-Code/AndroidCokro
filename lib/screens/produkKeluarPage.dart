@@ -27,9 +27,22 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
   int totalbayar = 0;
   int faktur = 0;
 
-  bool kredit = false;
+  bool isLoading = false;
 
   List<Map<String, dynamic>> tableData = [];
+
+  void notice(BuildContext context, String msg) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+                title: const Text('Notice!'),
+                content: Text(msg),
+                actions: [
+                  TextButton(
+                      child: const Text('Oke'),
+                      onPressed: () => Navigator.of(context).pop())
+                ]));
+  }
 
   Future<void> fetchData(String kodeBarang) async {
     var base = await ApiConfig.instance.readBaseUrl();
@@ -46,18 +59,28 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                 .map((item) => Map<String, dynamic>.from(item)));
         setState(() {
           for (var newItem in newData) {
-            var existingItem = tableData.firstWhere(
-              (item) => item['kode_brg'] == newItem['kode_brg'],
-              orElse: () => <String, dynamic>{},
-            );
-            if (existingItem.isNotEmpty) {
-              existingItem['quantity'] +=
-                  1; // Menambah quantity jika kode barang sama
+            if (newItem['stok_akhir'] > 0) {
+              var existingItem = tableData.firstWhere(
+                (item) => item['kode_brg'] == newItem['kode_brg'],
+                orElse: () => <String, dynamic>{},
+              );
+              if (existingItem.isNotEmpty) {
+                if (existingItem['quantity'] < newItem['stok_akhir']) {
+                  existingItem['quantity'] +=
+                      1; // Menambah quantity jika kode barang sama
+                } else {
+                  notice(context,
+                      'Stok ${newItem['nama_brg']} tidak mencukupi, Stok : ${newItem['stok_akhir']}');
+                }
+              } else {
+                newItem['quantity'] = 1; // Set quantity awal jika barang baru
+                tableData.add(newItem);
+              }
             } else {
-              newItem['quantity'] = 1; // Set quantity awal jika barang baru
-              tableData.add(newItem);
+              notice(context, 'Stok ${newItem['nama_brg']} sudah habis!');
             }
           }
+          Kembalian(totalbayar, getTotalHarga());
         });
       } else {
         showDialog(
@@ -164,26 +187,41 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
             TextButton(
               child: const Text('Oke'),
               onPressed: () {
-                setState(() {
-                  if (quantityController.text.isEmpty) {
-                    showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                                title:
-                                    const Text('Quantity tidak boleh kosong'),
-                                actions: [
-                                  TextButton(
-                                      child: const Text('Oke'),
-                                      onPressed: () =>
-                                          Navigator.of(context).pop())
-                                ]));
-                  }
-                  int index = tableData.indexOf(item);
-                  tableData[index]['quantity'] =
-                      int.parse(quantityController.text);
-                  Kembalian(totalbayar, getTotalHarga());
-                });
-                Navigator.of(context).pop();
+                int newQuantity = int.tryParse(quantityController.text) ?? 0;
+                if (newQuantity <= 0) {
+                  showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                              title: const Text('Quantity tidak valid'),
+                              content:
+                                  const Text('Quantity harus lebih dari 0.'),
+                              actions: [
+                                TextButton(
+                                    child: const Text('Oke'),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop())
+                              ]));
+                } else if (newQuantity > item['stok_akhir']) {
+                  showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                              title: const Text('Quantity melebihi stok'),
+                              content:
+                                  Text('Stok tersedia: ${item['stok_akhir']}'),
+                              actions: [
+                                TextButton(
+                                    child: const Text('Oke'),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop())
+                              ]));
+                } else {
+                  setState(() {
+                    int index = tableData.indexOf(item);
+                    tableData[index]['quantity'] = newQuantity;
+                    Kembalian(totalbayar, getTotalHarga());
+                  });
+                  Navigator.of(context).pop();
+                }
               },
             ),
           ],
@@ -227,21 +265,32 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
     });
   }
 
-  void tambahKeTabel(Map<String, dynamic> produkBaru) {
-    setState(() {
-      // Cari produk dalam tableData berdasarkan 'kode_brg'
-      var index = tableData
-          .indexWhere((item) => item['kode_brg'] == produkBaru['kode_brg']);
+  bool tambahKeTabel(Map<String, dynamic> produkBaru) {
+    var index = tableData
+        .indexWhere((item) => item['kode_brg'] == produkBaru['kode_brg']);
 
-      if (index != -1) {
-        // Produk sudah ada, tingkatkan quantity
-        tableData[index]['quantity'] += 1;
+    if (index != -1) {
+      if (tableData[index]['quantity'] < produkBaru['stok_akhir']) {
+        setState(() {
+          tableData[index]['quantity'] += 1;
+          Kembalian(totalbayar, getTotalHarga());
+        });
+        return true;
       } else {
-        // Produk belum ada, tambahkan dengan quantity 1
-        produkBaru['quantity'] = 1;
-        tableData.add(produkBaru);
+        return false; // Stok tidak mencukupi
       }
-    });
+    } else {
+      if (produkBaru['stok_akhir'] > 0) {
+        setState(() {
+          produkBaru['quantity'] = 1;
+          tableData.add(produkBaru);
+          Kembalian(totalbayar, getTotalHarga());
+        });
+        return true;
+      } else {
+        return false; // Stok habis
+      }
+    }
   }
 
   Future<void> printReceipt() async {
@@ -423,19 +472,31 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
         },
         body: jsonData);
 
-    var jsonResponse = json.decode(response.body);
-    if (response.statusCode == 200 &&
-        jsonResponse['data'][0]['success'] == true) {
-      //kasi if lagi, buat yang json response
-      print("Data berhasil diupdate");
-      tambahTransaksi();
+    if (response.statusCode == 200) {
+      var jsonResponse = json.decode(response.body);
+      if (jsonResponse['data'][0]['success'] == true) {
+        print("Data berhasil diupdate");
+        tambahTransaksi();
+      } else {
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                    title: Text('Error'),
+                    content: Text(
+                        '${jsonResponse['data'][0]['message']} , Status Code: ${response.statusCode}'),
+                    actions: [
+                      TextButton(
+                          child: Text('Oke'),
+                          onPressed: () => Navigator.of(context).pop())
+                    ]));
+      }
     } else {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
                   title: Text('Error'),
                   content: Text(
-                      '${jsonResponse['data'][0]['message']} , Status Code: ${response.statusCode}'),
+                      'Terjadi error saat melakukan update stok ke api!, Status Code: ${response.statusCode}'),
                   actions: [
                     TextButton(
                         child: Text('Oke'),
@@ -477,22 +538,37 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
         },
         body: jsonData);
 
-    var jsonResponse = json.decode(response.body);
-    if (response.statusCode == 200 &&
-        jsonResponse['data'][0]['success'] == true) {
-      //kasi if lagi, buat yang json response
-      print("Data berhasil di tambah");
-      printReceipt();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => produkKeluarPage()),
-      );
+    if (response.statusCode == 200) {
+      var jsonResponse = json.decode(response.body);
+      if (jsonResponse['data'][0]['success'] == true) {
+        print("Data berhasil di tambah");
+        printReceipt();
+        setState(() {
+          isLoading = false;
+        });
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => produkKeluarPage()),
+        );
+      } else {
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                    title: Text('Error'),
+                    content: Text(
+                        '${jsonResponse['data'][0]['message']} , Status Code: ${response.statusCode}'),
+                    actions: [
+                      TextButton(
+                          child: Text('Oke'),
+                          onPressed: () => Navigator.of(context).pop())
+                    ]));
+      }
     } else {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
                   title: Text('Error'),
                   content: Text(
-                      '${jsonResponse['data'][0]['message']} , Status Code: ${response.statusCode}'),
+                      'Terjadi error saat melakukan tambah transaksi ke api!,Status Code: ${response.statusCode}'),
                   actions: [
                     TextButton(
                         child: Text('Oke'),
@@ -583,12 +659,40 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w400)),
               onTap: () {
-                Navigator.of(context).pop();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const produkKeluarPage()),
-                );
+                if (tableData.isNotEmpty) {
+                  showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                            title: Text("Confirm"),
+                            content: Text(
+                                "Sudah ada data di tabel, yakin mau pindah?"),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('Tidak')),
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const produkKeluarPage()),
+                                    );
+                                  },
+                                  child: Text('Yakin')),
+                            ],
+                          ));
+                } else {
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const produkKeluarPage()),
+                  );
+                }
               },
             ),
             ListTile(
@@ -599,30 +703,79 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w400)),
               onTap: () {
-                Navigator.of(context).pop();
-                Navigator.pushReplacement(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) {
-                      return const Produk();
-                    },
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      var begin = const Offset(1.0, 0.0);
-                      var end = Offset.zero;
-                      var curve = Curves.ease;
-                      var tween = Tween(begin: begin, end: end)
-                          .chain(CurveTween(curve: curve));
-                      var offsetAnimation = animation.drive(tween);
+                if (tableData.isNotEmpty) {
+                  showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                            title: Text("Confirm"),
+                            content: Text(
+                                "Sudah ada data di tabel, yakin mau pindah?"),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('Tidak')),
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    Navigator.pushReplacement(
+                                      context,
+                                      PageRouteBuilder(
+                                        pageBuilder: (context, animation,
+                                            secondaryAnimation) {
+                                          return const Produk();
+                                        },
+                                        transitionsBuilder: (context, animation,
+                                            secondaryAnimation, child) {
+                                          var begin = const Offset(1.0, 0.0);
+                                          var end = Offset.zero;
+                                          var curve = Curves.ease;
+                                          var tween = Tween(
+                                                  begin: begin, end: end)
+                                              .chain(CurveTween(curve: curve));
+                                          var offsetAnimation =
+                                              animation.drive(tween);
 
-                      return SlideTransition(
-                        position: offsetAnimation,
-                        child: child,
-                      );
-                    },
-                    transitionDuration: const Duration(milliseconds: 500),
-                  ),
-                );
+                                          return SlideTransition(
+                                            position: offsetAnimation,
+                                            child: child,
+                                          );
+                                        },
+                                        transitionDuration:
+                                            const Duration(milliseconds: 500),
+                                      ),
+                                    );
+                                  },
+                                  child: Text('Yakin')),
+                            ],
+                          ));
+                } else {
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) {
+                        return const Produk();
+                      },
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        var begin = const Offset(1.0, 0.0);
+                        var end = Offset.zero;
+                        var curve = Curves.ease;
+                        var tween = Tween(begin: begin, end: end)
+                            .chain(CurveTween(curve: curve));
+                        var offsetAnimation = animation.drive(tween);
+
+                        return SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        );
+                      },
+                      transitionDuration: const Duration(milliseconds: 500),
+                    ),
+                  );
+                }
               },
             ),
             Expanded(
@@ -660,8 +813,8 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                     child: const Text(
                       'Credit',
                       style: TextStyle(
-                        color: Color.fromARGB(255, 226, 225, 225),
-                        fontSize: 20.0,
+                        color: Color.fromARGB(255, 240, 240, 240),
+                        fontSize: 15.0,
                       ),
                     ),
                   ),
@@ -671,401 +824,430 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
           ],
         ),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Expanded(
-                flex: 1,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          child: Padding(
-                        padding: const EdgeInsets.all(5),
-                        child: Text(
-                          'No Faktur : $faktur',
-                          style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w800,
-                              fontSize: screenHeight * 0.020),
+      body: isLoading
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  CircularProgressIndicator(),
+                  SizedBox(height: 10),
+                  Text('Proses...')
+                ],
+              ),
+            )
+          : Center(
+              child: Column(
+                children: [
+                  Expanded(
+                      flex: 1,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.05),
+                        child: Row(
+                          children: [
+                            Expanded(
+                                child: Padding(
+                              padding: const EdgeInsets.all(5),
+                              child: Text(
+                                'No Faktur : $faktur',
+                                style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: screenHeight * 0.020),
+                              ),
+                            )),
+                            Expanded(flex: 4, child: Container()),
+                            Expanded(
+                                flex: 1,
+                                child: SizedBox(
+                                  height: 30,
+                                  width: screenWidth * 0.1,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color.fromARGB(
+                                            255, 22, 219, 101),
+                                        padding:
+                                            const EdgeInsets.only(left: 3)),
+                                    child: Text("Cetak",
+                                        textAlign: TextAlign.right,
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: screenHeight * 0.018,
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.w400)),
+                                    onPressed: () {
+                                      if (totalbayar == 0) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('Notice'),
+                                              content: Text(
+                                                  'Anda belum menginputkan total bayar'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Okay'),
+                                                  onPressed: () => {
+                                                    Navigator.of(context).pop()
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      } else if (totalbayar < getTotalHarga()) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('Notice'),
+                                              content: Text(
+                                                  'Total bayar tidak mencukupi'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Okay'),
+                                                  onPressed: () => {
+                                                    Navigator.of(context).pop()
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      } else if (tableData.isEmpty) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('Notice'),
+                                              content: Text(
+                                                  'Belum ada produk yang di pilih'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Okay'),
+                                                  onPressed: () => {
+                                                    Navigator.of(context).pop()
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('Konfirmasi'),
+                                              content: Text(
+                                                  'Apakah Anda yakin ingin mencetak faktur ini?'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Batal'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: Text('Cetak'),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      isLoading = true;
+                                                    });
+                                                    Navigator.of(context).pop();
+                                                    updateStok();
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                  ),
+                                )),
+                          ],
                         ),
                       )),
-                      Expanded(flex: 4, child: Container()),
-                      Expanded(
-                          flex: 1,
-                          child: SizedBox(
-                            height: 30,
-                            width: screenWidth * 0.1,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      const Color.fromARGB(255, 22, 219, 101),
-                                  padding: const EdgeInsets.only(left: 3)),
-                              child: Text("Cetak",
-                                  textAlign: TextAlign.right,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: screenHeight * 0.018,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w400)),
-                              onPressed: () {
-                                if (totalbayar == 0) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Notice'),
-                                        content: Text(
-                                            'Anda belum menginputkan total bayar'),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            child: Text('Okay'),
-                                            onPressed: () =>
-                                                {Navigator.of(context).pop()},
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                } else if (totalbayar < getTotalHarga()) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Notice'),
-                                        content:
-                                            Text('Total bayar tidak mencukupi'),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            child: Text('Okay'),
-                                            onPressed: () =>
-                                                {Navigator.of(context).pop()},
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                } else if (tableData.isEmpty) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Notice'),
-                                        content: Text(
-                                            'Belum ada produk yang di pilih'),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            child: Text('Okay'),
-                                            onPressed: () =>
-                                                {Navigator.of(context).pop()},
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                } else {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Konfirmasi'),
-                                        content: Text(
-                                            'Apakah Anda yakin ingin mencetak faktur ini?'),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            child: Text('Batal'),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
-                                          TextButton(
-                                            child: Text('Cetak'),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                              updateStok();
-                                            },
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                }
-                              },
-                            ),
-                          )),
-                    ],
-                  ),
-                )),
-            Expanded(
-                flex: 1,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                  child: Row(
+                  Expanded(
+                      flex: 1,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.05),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                children: [
+                                  Text(
+                                    'Total Produk : ${rupiahFormat.format(getTotalProduk())}',
+                                    style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: screenHeight * 0.020),
+                                  )
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    'Total Harga : ${rupiahFormat.format(getTotalHarga())}',
+                                    style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: screenHeight * 0.020),
+                                  )
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    'Total Diskon : 0',
+                                    style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: screenHeight * 0.020),
+                                  )
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    'Total Bayar : ${rupiahFormat.format(totalbayar)}',
+                                    style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: screenHeight * 0.020),
+                                  )
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    'Kembalian : ${rupiahFormat.format(kembalian)}',
+                                    style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: screenHeight * 0.020),
+                                  )
+                                ],
+                              )
+                            ]),
+                      )),
+                  Expanded(
+                      child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          children: [
-                            Text(
-                              'Total Produk : ${rupiahFormat.format(getTotalProduk())}',
+                        SizedBox(
+                            width: 200,
+                            child: TextField(
+                              controller: _controllerKode,
+                              autocorrect: false,
+                              cursorColor: Colors.green,
+                              showCursor: true,
+                              textAlign: TextAlign.start,
+                              textAlignVertical: TextAlignVertical.center,
                               style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: screenHeight * 0.020),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Total Harga : ${rupiahFormat.format(getTotalHarga())}',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: screenHeight * 0.020),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Total Diskon : 0',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: screenHeight * 0.020),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Total Bayar : ${rupiahFormat.format(totalbayar)}',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: screenHeight * 0.020),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              'Kembalian : ${rupiahFormat.format(kembalian)}',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: screenHeight * 0.020),
-                            )
-                          ],
-                        )
-                      ]),
-                )),
-            Expanded(
-                child: Container(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                      width: 200,
-                      child: TextField(
-                        controller: _controllerKode,
-                        autocorrect: false,
-                        cursorColor: Colors.green,
-                        showCursor: true,
-                        textAlign: TextAlign.start,
-                        textAlignVertical: TextAlignVertical.center,
-                        decoration: InputDecoration(
-                          hintText: "Kode Barang...",
-                          hintStyle: TextStyle(
-                              fontSize: screenHeight * 0.018,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w400),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(50)),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.send),
-                            onPressed: () {
-                              fetchData(_controllerKode.text);
-                              _controllerKode.clear();
-                            },
-                          ),
-                        ),
-                        onSubmitted: (value) {
-                          fetchData(value);
-                          _controllerKode.clear();
-                        },
-                      )),
-                  Row(
-                    children: [
-                      SizedBox(
-                          width: 200,
-                          child: TextField(
-                            autocorrect: false,
-                            cursorColor: Colors.green,
-                            showCursor: true,
-                            textAlign: TextAlign.start,
-                            textAlignVertical: TextAlignVertical.center,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                                hintText: "Bayar Rp.",
+                                  fontSize: screenHeight * 0.019,
+                                  fontFamily: 'Poppins'),
+                              decoration: InputDecoration(
+                                hintText: "Kode Barang...",
                                 hintStyle: TextStyle(
                                     fontSize: screenHeight * 0.018,
                                     fontFamily: 'Poppins',
                                     fontWeight: FontWeight.w400),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(50),
+                                    borderRadius: BorderRadius.circular(30)),
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.send),
+                                  onPressed: () {
+                                    fetchData(_controllerKode.text);
+                                    _controllerKode.clear();
+                                  },
                                 ),
-                                icon: const Icon(Icons.payment)),
-                            onChanged: (String value) {
-                              updateTotalBayar(int.tryParse(value) ?? 0);
-                            },
+                              ),
+                              onSubmitted: (value) {
+                                fetchData(value);
+                                _controllerKode.clear();
+                              },
+                            )),
+                        Row(
+                          children: [
+                            SizedBox(
+                                width: 200,
+                                child: TextField(
+                                  autocorrect: false,
+                                  cursorColor: Colors.green,
+                                  showCursor: true,
+                                  textAlign: TextAlign.start,
+                                  textAlignVertical: TextAlignVertical.center,
+                                  keyboardType: TextInputType.number,
+                                  style: TextStyle(
+                                      fontSize: screenHeight * 0.019,
+                                      fontFamily: 'Poppins'),
+                                  decoration: InputDecoration(
+                                      hintText: "Bayar Rp.",
+                                      hintStyle: TextStyle(
+                                          fontSize: screenHeight * 0.018,
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.w400),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(50),
+                                      ),
+                                      icon: const Icon(Icons.payment)),
+                                  onChanged: (String value) {
+                                    updateTotalBayar(int.tryParse(value) ?? 0);
+                                  },
+                                )),
+                          ],
+                        )
+                      ],
+                    ),
+                  )),
+                  Expanded(
+                    flex: 6,
+                    child: SingleChildScrollView(
+                      child: DataTable(
+                        columnSpacing: screenWidth * 0.08,
+                        columns: [
+                          DataColumn(
+                              label: Text(
+                            'Kode Barang',
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400,
+                                fontSize: screenHeight * 0.017),
                           )),
-                    ],
-                  )
-                ],
-              ),
-            )),
-            Expanded(
-              flex: 6,
-              child: SingleChildScrollView(
-                child: DataTable(
-                  columnSpacing: screenWidth * 0.08,
-                  columns: [
-                    DataColumn(
-                        label: Text(
-                      'Kode Barang',
-                      style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          fontSize: screenHeight * 0.017),
-                    )),
-                    DataColumn(
-                        label: Text(
-                      'Nama Barang',
-                      style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          fontSize: screenHeight * 0.017),
-                    )),
-                    DataColumn(
-                        label: Text(
-                      'Quantity',
-                      style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          fontSize: screenHeight * 0.017),
-                    )),
-                    DataColumn(
-                        label: Text(
-                      'Harga (pcs)',
-                      style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          fontSize: screenHeight * 0.017),
-                    )),
-                    DataColumn(
-                        label: Text(
-                      'Aksi',
-                      style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          fontSize: screenHeight * 0.017),
-                    )),
-                  ],
-                  rows: tableData
-                      .map((item) => DataRow(
-                            cells: [
-                              DataCell(Text(
-                                item['kode_brg'],
-                                style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: screenHeight * 0.017),
-                              )),
-                              DataCell(Text(
-                                item['nama_brg'],
-                                style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: screenHeight * 0.017),
-                              )),
-                              DataCell(
-                                  Text(
-                                    item['quantity'].toString(),
-                                    style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: screenHeight * 0.017),
-                                  ),
-                                  onTap: () => editQuantity(
-                                      item)), // Menampilkan quantity
-                              DataCell(Text(
-                                item['jual'].toString(),
-                                style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: screenHeight * 0.017),
-                              )),
-                              DataCell(const Icon(Icons.delete),
-                                  onTap: () => hapusItem(item)),
-                            ],
-                          ))
-                      .toList(),
-                ),
-              ),
-            ),
-            Expanded(
-                child: Row(children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder:
-                              (context, animation, secondaryAnimation) {
-                            return cariProdukPage(tambahKeTabel: tambahKeTabel);
-                          },
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                            var begin = const Offset(
-                                0.0, 1.0); // Ubah dari bawah ke atas
-                            var end = Offset.zero;
-                            var curve = Curves.ease;
-                            var tween = Tween(begin: begin, end: end)
-                                .chain(CurveTween(curve: curve));
-                            var offsetAnimation = animation.drive(tween);
+                          DataColumn(
+                              label: Text(
+                            'Nama Barang',
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400,
+                                fontSize: screenHeight * 0.017),
+                          )),
+                          DataColumn(
+                              label: Text(
+                            'Quantity',
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400,
+                                fontSize: screenHeight * 0.017),
+                          )),
+                          DataColumn(
+                              label: Text(
+                            'Harga (pcs)',
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400,
+                                fontSize: screenHeight * 0.017),
+                          )),
+                          DataColumn(
+                              label: Text(
+                            'Aksi',
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400,
+                                fontSize: screenHeight * 0.017),
+                          )),
+                        ],
+                        rows: tableData
+                            .map((item) => DataRow(
+                                  cells: [
+                                    DataCell(Text(
+                                      item['kode_brg'],
+                                      style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: screenHeight * 0.017),
+                                    )),
+                                    DataCell(Text(
+                                      item['nama_brg'],
+                                      style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: screenHeight * 0.017),
+                                    )),
+                                    DataCell(
+                                        Text(
+                                          item['quantity'].toString(),
+                                          style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: screenHeight * 0.017),
+                                        ),
+                                        onTap: () => editQuantity(
+                                            item)), // Menampilkan quantity
+                                    DataCell(Text(
+                                      item['jual'].toString(),
+                                      style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: screenHeight * 0.017),
+                                    )),
+                                    DataCell(const Icon(Icons.delete),
+                                        onTap: () => hapusItem(item)),
+                                  ],
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                      child: Row(children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) {
+                                  return cariProdukPage(
+                                      tambahKeTabel: tambahKeTabel);
+                                },
+                                transitionsBuilder: (context, animation,
+                                    secondaryAnimation, child) {
+                                  var begin = const Offset(
+                                      0.0, 1.0); // Ubah dari bawah ke atas
+                                  var end = Offset.zero;
+                                  var curve = Curves.ease;
+                                  var tween = Tween(begin: begin, end: end)
+                                      .chain(CurveTween(curve: curve));
+                                  var offsetAnimation = animation.drive(tween);
 
-                            return SlideTransition(
-                              position: offsetAnimation,
-                              child: child,
+                                  return SlideTransition(
+                                    position: offsetAnimation,
+                                    child: child,
+                                  );
+                                },
+                                transitionDuration:
+                                    const Duration(milliseconds: 500),
+                              ),
                             );
                           },
-                          transitionDuration: const Duration(milliseconds: 500),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: screenWidth * 0.05),
-                        backgroundColor:
-                            const Color.fromARGB(255, 22, 219, 101)),
-                    child: Text(
-                      'Cari Barang',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: screenHeight * 0.018,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400),
-                    )),
-              )
-            ]))
-          ],
-        ),
-      ),
+                          style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.05),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 22, 219, 101)),
+                          child: Text(
+                            'Cari Barang',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: screenHeight * 0.018,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w400),
+                          )),
+                    )
+                  ]))
+                ],
+              ),
+            ),
     );
   }
 }
