@@ -177,7 +177,7 @@ class _LoginPageState extends State<loginPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Image(
-                            image: AssetImage("images/200.png"),
+                            image: const AssetImage("images/200.png"),
                             width: screenWidth * 0.2,
                             height: screenHeight * 0.2,
                             alignment: Alignment.topLeft,
@@ -186,7 +186,7 @@ class _LoginPageState extends State<loginPage> {
                             child: Container(
                               height: screenHeight * 0.8,
                               decoration: BoxDecoration(
-                                color: Color.fromARGB(255, 56, 38, 150),
+                                color: const Color.fromARGB(255, 56, 38, 150),
                                 borderRadius: BorderRadius.circular(15),
                               ),
                               child: Center(
@@ -219,11 +219,11 @@ class _LoginPageState extends State<loginPage> {
                                                 TextAlignVertical.center,
                                             textCapitalization:
                                                 TextCapitalization.none,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: Colors.blue,
                                               fontSize: 20.0,
                                             ),
-                                            decoration: InputDecoration(
+                                            decoration: const InputDecoration(
                                               icon: Icon(
                                                 Icons.person,
                                                 size: 35,
@@ -255,12 +255,12 @@ class _LoginPageState extends State<loginPage> {
                                             textCapitalization:
                                                 TextCapitalization.none,
                                             obscureText: _obscureText,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: Colors.blue,
                                               fontSize: 20.0,
                                             ),
                                             decoration: InputDecoration(
-                                              icon: Icon(
+                                              icon: const Icon(
                                                 Icons.lock,
                                                 size: 35,
                                                 color: Colors.blue,
@@ -273,23 +273,23 @@ class _LoginPageState extends State<loginPage> {
                                                     });
                                                   },
                                                   icon: _obscureText
-                                                      ? Icon(
+                                                      ? const Icon(
                                                           Icons.visibility,
                                                           size: 25,
                                                           color: Colors.blue,
                                                         )
-                                                      : Icon(
+                                                      : const Icon(
                                                           Icons.visibility_off,
                                                           size: 25,
                                                           color: Colors.blue,
                                                         )),
                                               hintText: 'Masukkan password',
-                                              hintStyle: TextStyle(
+                                              hintStyle: const TextStyle(
                                                 color: Colors.blue,
                                               ),
-                                              border: OutlineInputBorder(),
+                                              border: const OutlineInputBorder(),
                                               labelText: "Password",
-                                              labelStyle: TextStyle(
+                                              labelStyle: const TextStyle(
                                                   color: Colors.blue,
                                                   fontSize: 30.0),
                                             ),
@@ -305,7 +305,7 @@ class _LoginPageState extends State<loginPage> {
                                               },
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor: Colors.blue,
-                                                padding: EdgeInsets.symmetric(
+                                                padding: const EdgeInsets.symmetric(
                                                   horizontal: 20,
                                                   vertical: 10,
                                                 ),
@@ -313,12 +313,12 @@ class _LoginPageState extends State<loginPage> {
                                                   borderRadius:
                                                       BorderRadius.circular(10),
                                                 ),
-                                                textStyle: TextStyle(
+                                                textStyle: const TextStyle(
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
-                                              child: Row(
+                                              child: const Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment.center,
                                                 children: [
@@ -341,7 +341,7 @@ class _LoginPageState extends State<loginPage> {
                             ),
                           ),
                           Image(
-                            image: AssetImage("images/smk.png"),
+                            image: const AssetImage("images/smk.png"),
                             width: screenWidth * 0.2,
                             height: screenHeight * 0.2,
                             alignment: Alignment.topRight,

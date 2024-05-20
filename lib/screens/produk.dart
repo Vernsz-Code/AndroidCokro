@@ -348,7 +348,7 @@ class _ProdukState extends State<Produk> {
                       flex: 2,
                       child: TextField(
                         controller: searchController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Cari Produk',
                           suffixIcon: Icon(Icons.search),
                         ),

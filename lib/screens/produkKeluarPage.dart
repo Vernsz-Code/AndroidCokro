@@ -135,7 +135,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                             Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => produkKeluarPage()));
+                                    builder: (context) => const produkKeluarPage()));
                           })
                     ]));
         throw Exception(
@@ -156,7 +156,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                           Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => produkKeluarPage()));
+                                  builder: (context) => const produkKeluarPage()));
                         })
                   ]));
       throw Exception(
@@ -338,9 +338,9 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
             linesAfter: 1);
 
         printer.text('Jl. Hos Cokroaminoto No 102,',
-            styles: PosStyles(align: PosAlign.center));
+            styles: const PosStyles(align: PosAlign.center));
         printer.text('Enggal, Bandar Lampung',
-            styles: PosStyles(align: PosAlign.center), linesAfter: 1);
+            styles: const PosStyles(align: PosAlign.center), linesAfter: 1);
 
         printer.hr();
 
@@ -350,11 +350,11 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
           PosColumn(
               text: 'Price',
               width: 2,
-              styles: PosStyles(align: PosAlign.right)),
+              styles: const PosStyles(align: PosAlign.right)),
           PosColumn(
               text: 'Total',
               width: 3,
-              styles: PosStyles(align: PosAlign.right)),
+              styles: const PosStyles(align: PosAlign.right)),
         ]);
 
         for (FakturItem item in items) {
@@ -364,11 +364,11 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
             PosColumn(
                 text: rupiahFormat.format(item.price),
                 width: 3,
-                styles: PosStyles(align: PosAlign.right)),
+                styles: const PosStyles(align: PosAlign.right)),
             PosColumn(
                 text: rupiahFormat.format(item.price * item.quantity),
                 width: 3,
-                styles: PosStyles(align: PosAlign.right)),
+                styles: const PosStyles(align: PosAlign.right)),
           ]);
         }
 
@@ -378,14 +378,14 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
           PosColumn(
               text: 'TOTAL',
               width: 4,
-              styles: PosStyles(
+              styles: const PosStyles(
                 height: PosTextSize.size2,
                 width: PosTextSize.size2,
               )),
           PosColumn(
-              text: '\ ${totalHargaRupiah}',
+              text: totalHargaRupiah,
               width: 8,
-              styles: PosStyles(
+              styles: const PosStyles(
                 align: PosAlign.right,
                 height: PosTextSize.size2,
                 width: PosTextSize.size2,
@@ -399,35 +399,35 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
               text: 'Tunai :',
               width: 8,
               styles:
-                  PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
+                  const PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
           PosColumn(
-              text: '\ ${rupiahFormat.format(totalbayar)}',
+              text: rupiahFormat.format(totalbayar),
               width: 4,
               styles:
-                  PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
+                  const PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
         ]);
         printer.row([
           PosColumn(
               text: 'Kembalian :',
               width: 8,
               styles:
-                  PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
+                  const PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
           PosColumn(
-              text: '\ ${rupiahFormat.format(kembalian)}',
+              text: rupiahFormat.format(kembalian),
               width: 4,
               styles:
-                  PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
+                  const PosStyles(align: PosAlign.left, width: PosTextSize.size1)),
         ]);
 
         printer.feed(2);
         printer.text('TERIMAKASIH TELAH BERBELANJA DI COKRO4MART',
-            styles: PosStyles(align: PosAlign.center, bold: true));
+            styles: const PosStyles(align: PosAlign.center, bold: true));
 
         final now = DateTime.now();
         final formatter = DateFormat('MM/dd/yyyy H:m');
         final String timestamp = formatter.format(now);
         printer.text(timestamp,
-            styles: PosStyles(align: PosAlign.center), linesAfter: 2);
+            styles: const PosStyles(align: PosAlign.center), linesAfter: 2);
 
         printer.cut();
       } finally {
@@ -437,11 +437,11 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
-                  title: Text('Error'),
+                  title: const Text('Error'),
                   content: Text('Failed to connect to printer: $result'),
                   actions: [
                     TextButton(
-                        child: Text('Oke'),
+                        child: const Text('Oke'),
                         onPressed: () => Navigator.of(context).pop())
                   ]));
     }
@@ -481,12 +481,12 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
         showDialog(
             context: context,
             builder: (context) => AlertDialog(
-                    title: Text('Error'),
+                    title: const Text('Error'),
                     content: Text(
                         '${jsonResponse['data'][0]['message']} , Status Code: ${response.statusCode}'),
                     actions: [
                       TextButton(
-                          child: Text('Oke'),
+                          child: const Text('Oke'),
                           onPressed: () => Navigator.of(context).pop())
                     ]));
       }
@@ -494,12 +494,12 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
-                  title: Text('Error'),
+                  title: const Text('Error'),
                   content: Text(
                       'Terjadi error saat melakukan update stok ke api!, Status Code: ${response.statusCode}'),
                   actions: [
                     TextButton(
-                        child: Text('Oke'),
+                        child: const Text('Oke'),
                         onPressed: () => Navigator.of(context).pop())
                   ]));
     }
@@ -547,18 +547,18 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
           isLoading = false;
         });
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => produkKeluarPage()),
+          MaterialPageRoute(builder: (context) => const produkKeluarPage()),
         );
       } else {
         showDialog(
             context: context,
             builder: (context) => AlertDialog(
-                    title: Text('Error'),
+                    title: const Text('Error'),
                     content: Text(
                         '${jsonResponse['data'][0]['message']} , Status Code: ${response.statusCode}'),
                     actions: [
                       TextButton(
-                          child: Text('Oke'),
+                          child: const Text('Oke'),
                           onPressed: () => Navigator.of(context).pop())
                     ]));
       }
@@ -566,12 +566,12 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
-                  title: Text('Error'),
+                  title: const Text('Error'),
                   content: Text(
                       'Terjadi error saat melakukan tambah transaksi ke api!,Status Code: ${response.statusCode}'),
                   actions: [
                     TextButton(
-                        child: Text('Oke'),
+                        child: const Text('Oke'),
                         onPressed: () => Navigator.of(context).pop())
                   ]));
     }
@@ -663,15 +663,15 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                   showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                            title: Text("Confirm"),
-                            content: Text(
+                            title: const Text("Confirm"),
+                            content: const Text(
                                 "Sudah ada data di tabel, yakin mau pindah?"),
                             actions: [
                               TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
-                                  child: Text('Tidak')),
+                                  child: const Text('Tidak')),
                               TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
@@ -682,7 +682,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                                               const produkKeluarPage()),
                                     );
                                   },
-                                  child: Text('Yakin')),
+                                  child: const Text('Yakin')),
                             ],
                           ));
                 } else {
@@ -707,15 +707,15 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                   showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                            title: Text("Confirm"),
-                            content: Text(
+                            title: const Text("Confirm"),
+                            content: const Text(
                                 "Sudah ada data di tabel, yakin mau pindah?"),
                             actions: [
                               TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
-                                  child: Text('Tidak')),
+                                  child: const Text('Tidak')),
                               TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
@@ -747,7 +747,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                                       ),
                                     );
                                   },
-                                  child: Text('Yakin')),
+                                  child: const Text('Yakin')),
                             ],
                           ));
                 } else {
@@ -825,7 +825,7 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
         ),
       ),
       body: isLoading
-          ? Center(
+          ? const Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
@@ -881,12 +881,12 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
-                                              title: Text('Notice'),
-                                              content: Text(
+                                              title: const Text('Notice'),
+                                              content: const Text(
                                                   'Anda belum menginputkan total bayar'),
                                               actions: <Widget>[
                                                 TextButton(
-                                                  child: Text('Okay'),
+                                                  child: const Text('Okay'),
                                                   onPressed: () => {
                                                     Navigator.of(context).pop()
                                                   },
@@ -900,12 +900,12 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
-                                              title: Text('Notice'),
-                                              content: Text(
+                                              title: const Text('Notice'),
+                                              content: const Text(
                                                   'Total bayar tidak mencukupi'),
                                               actions: <Widget>[
                                                 TextButton(
-                                                  child: Text('Okay'),
+                                                  child: const Text('Okay'),
                                                   onPressed: () => {
                                                     Navigator.of(context).pop()
                                                   },
@@ -919,12 +919,12 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
-                                              title: Text('Notice'),
-                                              content: Text(
+                                              title: const Text('Notice'),
+                                              content: const Text(
                                                   'Belum ada produk yang di pilih'),
                                               actions: <Widget>[
                                                 TextButton(
-                                                  child: Text('Okay'),
+                                                  child: const Text('Okay'),
                                                   onPressed: () => {
                                                     Navigator.of(context).pop()
                                                   },
@@ -938,18 +938,18 @@ class _produkKeluarPageState extends State<produkKeluarPage> {
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
-                                              title: Text('Konfirmasi'),
-                                              content: Text(
+                                              title: const Text('Konfirmasi'),
+                                              content: const Text(
                                                   'Apakah Anda yakin ingin mencetak faktur ini?'),
                                               actions: <Widget>[
                                                 TextButton(
-                                                  child: Text('Batal'),
+                                                  child: const Text('Batal'),
                                                   onPressed: () {
                                                     Navigator.of(context).pop();
                                                   },
                                                 ),
                                                 TextButton(
-                                                  child: Text('Cetak'),
+                                                  child: const Text('Cetak'),
                                                   onPressed: () {
                                                     setState(() {
                                                       isLoading = true;
