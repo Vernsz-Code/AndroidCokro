@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:androidcokro/loginPage.dart';
+import 'package:androidcokro/screens/loginPage.dart';
 
 
 void main() {

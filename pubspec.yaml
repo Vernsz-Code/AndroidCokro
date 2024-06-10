@@ -38,6 +38,10 @@ dependencies:
   connectivity_plus: ^2.3.7
   google_fonts: ^6.2.1
   http: ^1.2.1
+  esc_pos_printer: ^4.0.3
+  esc_pos_utils: ^1.0.0
+  intl: ^0.17.0
+  image: ^3.0.2
 
   path_provider: any
 dev_dependencies:

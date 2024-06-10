@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="androidchokro"
+        android:label="K4 Cokro Cashier"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/cokro">
         <activity
             android:name=".MainActivity"
             android:exported="true"
